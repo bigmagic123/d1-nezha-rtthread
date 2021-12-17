@@ -255,11 +255,11 @@
 .endm
 
 .macro OPEN_INTERRUPT
-    csrsi sstatus, 2
+    csrsi mstatus, 2
 .endm
 
 .macro CLOSE_INTERRUPT
-    csrci sstatus, 2
+    csrci mstatus, 2
 .endm
 
 #endif

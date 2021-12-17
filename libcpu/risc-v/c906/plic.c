@@ -173,5 +173,5 @@ done:
     }
 
     /* Enable supervisor external interrupts. */
-    set_csr(sie, SIE_SEIE);
+    set_csr(mie, MIP_MEIP);
 }

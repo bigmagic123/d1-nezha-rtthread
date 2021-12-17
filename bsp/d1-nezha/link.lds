@@ -21,13 +21,13 @@ OUTPUT_ARCH( "riscv" )
 
 MEMORY
 {
-   SRAM : ORIGIN = 0x45000000, LENGTH = 0x7FF000
+   SRAM : ORIGIN = 0x40000000, LENGTH = 0x7FF000
 }
 
 ENTRY(_start)
 SECTIONS
 {
-    . = 0x45000000 ;
+    . = 0x40000000 ;
 
     /* __STACKSIZE__ = 4096; */
 
@@ -122,22 +122,18 @@ SECTIONS
 
     . = ALIGN(8);
 
-    .sbss : 
+    .bss :
     {
-    __bss_start = .;
+    PROVIDE(__bss_start = .); 
+        *(.bss)
+        *(.bss.*)
+        *(.dynbss)
         *(.sbss)
         *(.sbss.*)
         *(.dynsbss)
         *(.scommon)
-    } > SRAM
-
-    .bss :
-    {
-        *(.bss)
-        *(.bss.*)
-        *(.dynbss)
         *(COMMON)
-    __bss_end = .;
+    PROVIDE(__bss_end = .);
     } > SRAM
 
     _end = .;

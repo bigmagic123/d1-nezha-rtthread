@@ -32,7 +32,7 @@ static void rt_hw_interrupt_handler(int vector, void *param)
 void rt_hw_interrupt_init(void)
 {
     /* init interrupt controller */
-    plic_init();
+    //plic_init();
 
     rt_int32_t idx;
 
