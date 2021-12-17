@@ -21,13 +21,8 @@ rt_hw_context_switch_to:
     la s0, rt_current_thread
     LOAD s1, (s0)
 
-    #ifdef RT_USING_USERSPACE
-        mv a0, s1
-        jal lwp_mmu_switch
-    #endif
-
     RESTORE_ALL
-    sret
+    mret
 
 /*
  * void rt_hw_context_switch(rt_ubase_t from, rt_ubase_t to);
@@ -39,8 +34,8 @@ rt_hw_context_switch_to:
 rt_hw_context_switch:
     mv t2, sp
     li t0, 0x120//set SPIE and SPP = 1
-    csrs sstatus, t0//if enter here,caller must be in system thread
-    csrw sepc, ra//return address
+    csrs mstatus, t0//if enter here,caller must be in system thread
+    csrw mepc, ra//return address
     //saved from thread context
     SAVE_ALL
 
@@ -60,4 +55,4 @@ rt_hw_context_switch:
     #endif
 
     RESTORE_ALL
-    sret
+    mret

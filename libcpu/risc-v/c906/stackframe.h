@@ -62,10 +62,10 @@
     addi sp, sp, -CTX_GENERAL_REG_NR * REGBYTES
     STORE x1,   1 * REGBYTES(sp)
 
-    csrr  x1, sstatus
+    csrr  x1, mstatus
     STORE x1,   2 * REGBYTES(sp)
 
-    csrr  x1, sepc
+    csrr  x1, mepc
     STORE x1, 0 * REGBYTES(sp)
 
     STORE x3,   3 * REGBYTES(sp)
@@ -97,7 +97,7 @@
     STORE x29, 29 * REGBYTES(sp)
     STORE x30, 30 * REGBYTES(sp)
     STORE x31, 31 * REGBYTES(sp)
-    csrr t0, sscratch
+    csrr t0, mscratch
     STORE t0, 32 * REGBYTES(sp)
 
 #ifdef ENABLE_FPU
@@ -105,8 +105,8 @@
     mv t1, sp
     addi t1, t1, CTX_GENERAL_REG_NR * REGBYTES
 
-    li  t0, SSTATUS_FS
-    csrs sstatus, t0
+    li  t0, MSTATUS_FS
+    csrs mstatus, t0
     fsd f0,  FPU_CTX_F0_OFF(t1)
     fsd f1,  FPU_CTX_F1_OFF(t1)
     fsd f2,  FPU_CTX_F2_OFF(t1)
@@ -141,11 +141,11 @@
     fsd f31, FPU_CTX_F31_OFF(t1)
 
     /* clr FS domain */
-    csrc sstatus, t0
+    csrc mstatus, t0
 
     /* clean status would clr sr_sd; */
-    li t0, SSTATUS_FS_CLEAN
-    csrs sstatus, t0
+    li t0, MSTATUS_FS_CLEAN
+    csrs mstatus, t0
 
 #endif /* ENABLE_FPU */
 
@@ -158,8 +158,8 @@
     mv t2, sp
     addi t2, t2, CTX_GENERAL_REG_NR * REGBYTES   /* skip all normal reg */
 
-    li  t0, SSTATUS_FS
-    csrs sstatus, t0
+    li  t0, MSTATUS_FS
+    csrs mstatus, t0
     fld f0, FPU_CTX_F0_OFF(t2)
     fld f1, FPU_CTX_F1_OFF(t2)
     fld f2, FPU_CTX_F2_OFF(t2)
@@ -194,11 +194,11 @@
     fld f31,FPU_CTX_F31_OFF(t2)
 
     /* clr FS domain */
-    csrc sstatus, t0
+    csrc mstatus, t0
 
     /* clean status would clr sr_sd; */
-    li t0, SSTATUS_FS_CLEAN
-    csrs sstatus, t0
+    li t0, MSTATUS_FS_CLEAN
+    csrs mstatus, t0
 
 #endif /* ENABLE_FPU */
 
@@ -206,10 +206,10 @@
 
     /* resw ra to sepc */
     LOAD x1,   0 * REGBYTES(sp)
-    csrw sepc, x1
+    csrw mepc, x1
 
     LOAD x1,   2 * REGBYTES(sp)
-    csrw sstatus, x1
+    csrw mstatus, x1
 
     LOAD x1,   1 * REGBYTES(sp)
 

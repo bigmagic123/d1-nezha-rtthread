@@ -75,9 +75,10 @@ rt_uint8_t *rt_hw_stack_init(void       *tentry,
 
     /* force to supervisor mode(SPP=1) and set SPIE and SUM to 1 */
 #ifdef ENABLE_FPU
-    frame->sstatus = 0x00046120;    /* enable FPU */
+    frame->mstatus = 0x00046120;    /* enable FPU */
 #else
-    frame->sstatus = 0x00040120;
+    //frame->sstatus = 0x00040120;
+    frame->mstatus = 0x00007880;
 #endif
 
     return stk;

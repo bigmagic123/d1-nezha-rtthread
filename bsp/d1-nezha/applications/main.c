@@ -14,8 +14,6 @@
 
 int main(void)
 {
-    void rt_hw_uart_start_rx_thread();
-    rt_hw_uart_start_rx_thread();
     printf("Hello RISC-V\n");
 
     return 0;
