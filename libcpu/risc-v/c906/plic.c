@@ -124,19 +124,12 @@ void plic_init(void)
 
     if (c906_plic_regs)
     {
-        LOG_E("plic already initialized!");
         return;
     }
 
     nr_context = C906_NR_CONTEXT;
 
     c906_plic_regs = (void *)C906_PLIC_PHY_ADDR;
-    if (!c906_plic_regs)
-    {
-        LOG_E("fatal error, plic is reg space is null.");
-        return;
-    }
-
     nr_irqs = C906_PLIC_NR_EXT_IRQS;
 
     for (i = 0; i < nr_context; i ++)

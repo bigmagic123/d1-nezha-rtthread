@@ -203,20 +203,20 @@ void generic_handle_irq(int irq)
 }
 
 /* Trap entry */
-void handle_trap(rt_size_t scause,rt_size_t stval,rt_size_t sepc,struct rt_hw_stack_frame *sp)
+void handle_trap(rt_size_t mcause,rt_size_t mtval,rt_size_t mepc,struct rt_hw_stack_frame *sp)
 {
-    rt_size_t id = __MASKVALUE(scause,__MASK(63UL));
+    rt_size_t id = __MASKVALUE(mcause,__MASK(63UL));
     const char *msg;
 
     /* supervisor external interrupt */
-    if ((SCAUSE_INTERRUPT & scause) && SCAUSE_S_EXTERNAL_INTR == (scause & 0xff))
+    if ((MCAUSE_INTERRUPT & mcause) && SCAUSE_S_EXTERNAL_INTR == (mcause & 0xff))
     {
         rt_interrupt_enter();
         plic_handle_irq();
         rt_interrupt_leave();
         return;
     }
-    else if ((SCAUSE_INTERRUPT | SCAUSE_S_TIMER_INTR) == scause)
+    else if ((MCAUSE_INTERRUPT | MCAUSE_M_TIMER_INTR) == mcause)
     {
         /* supervisor timer */
         rt_interrupt_enter();
@@ -224,7 +224,7 @@ void handle_trap(rt_size_t scause,rt_size_t stval,rt_size_t sepc,struct rt_hw_st
         rt_interrupt_leave();
         return;
     }
-    else if (SCAUSE_INTERRUPT & scause)
+    else if (MCAUSE_INTERRUPT & mcause)
     {
         if(id < sizeof(Interrupt_Name) / sizeof(const char *))
         {
@@ -243,7 +243,7 @@ void handle_trap(rt_size_t scause,rt_size_t stval,rt_size_t sepc,struct rt_hw_st
         if (id == EP_LOAD_PAGE_FAULT ||
             id == EP_STORE_PAGE_FAULT)
         {
-            arch_expand_user_stack((void *)stval);
+            arch_expand_user_stack((void *)mtval);
             return;
         }
 #endif
@@ -259,7 +259,7 @@ void handle_trap(rt_size_t scause,rt_size_t stval,rt_size_t sepc,struct rt_hw_st
         rt_kprintf("Unhandled Exception %ld:%s\n",id,msg);
     }
 
-    rt_kprintf("scause:0x%p,stval:0x%p,sepc:0x%p\n",scause,stval,sepc);
+    rt_kprintf("mcause:0x%p,mtval:0x%p,mepc:0x%p\n",mcause,mtval,mepc);
     dump_regs(sp);
     while(1);
 }

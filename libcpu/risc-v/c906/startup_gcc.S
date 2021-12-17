@@ -33,6 +33,10 @@ _start:
     li t2, 0x30013
     csrs mcor, t2
 
+    /* irq entry */
+    la t0, trap_entry
+    csrw mtvec, t0
+
     la sp, __stack_cpu0
     jal clear_bss
     jal  entry

@@ -30,22 +30,15 @@ static uint64_t get_ticks()
 
 int tick_isr(void)
 {
+    clint_timer_init();
     rt_tick_increase();
-    sbi_set_timer(get_ticks() + tick_delta);
     return 0;
 }
 
 /* Sets and enable the timer interrupt */
 int rt_hw_tick_init(void)
 {
-    /* Clear the Supervisor-Timer bit in SIE */
-    clear_csr(sie, SIP_STIP);
-
-    /* Set timer */
-    sbi_set_timer(get_ticks() + tick_delta);
-
-    /* Enable the Supervisor-Timer bit in SIE */
-    set_csr(sie, SIP_STIP);
+    clint_timer_init();
 
     return 0;
 }

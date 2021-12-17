@@ -114,10 +114,13 @@
 #define RISCV_XLEN    64
 
 #define SCAUSE_INTERRUPT    (1UL << (RISCV_XLEN - 1))
+#define MCAUSE_INTERRUPT    (1UL << (RISCV_XLEN - 1))
 
 #define SCAUSE_S_SOFTWARE_INTR  1
 #define SCAUSE_S_TIMER_INTR     5
 #define SCAUSE_S_EXTERNAL_INTR  9
+
+#define MCAUSE_M_TIMER_INTR     7
 
 #define PRV_U 0
 #define PRV_S 1

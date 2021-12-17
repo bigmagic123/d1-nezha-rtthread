@@ -22,7 +22,7 @@
   .extern get_current_thread_kernel_stack_top
 trap_entry:
     //backup sp
-    csrrw sp, sscratch, sp
+    csrrw sp, mscratch, sp
     //load interrupt stack
     la sp, __stack_cpu0
     //backup context
@@ -30,17 +30,12 @@ trap_entry:
     
     RESTORE_SYS_GP
 
-    //check syscall
-    csrr t0, scause
-    li t1, 8//environment call from u-mode
-    beq t0, t1, syscall_entry
-
-    csrr a0, scause
-    csrrc a1, stval, zero
-    csrr  a2, sepc
+    csrr a0, mcause
+    csrrc a1, mtval, zero
+    csrr  a2, mepc
     mv    a3, sp
 
-    /* scause, stval, sepc, sp */
+    /* mcause, mtval, mepc, sp */
     call  handle_trap
 
     /* need to switch new thread */
@@ -100,7 +95,7 @@ copy_context_loop_interrupt:
 
 spurious_interrupt:
     RESTORE_ALL
-    sret
+    mret
 
 syscall_entry:
     //swap to thread kernel stack
