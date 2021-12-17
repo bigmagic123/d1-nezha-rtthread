@@ -1,5 +1,6 @@
 {
     "files.associations": {
-        "cpuport.h": "c"
+        "cpuport.h": "c",
+        "rtconfig.h": "c"
     }
 }

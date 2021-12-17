@@ -15,7 +15,8 @@ if rtconfig.CPU == "c906" :
 else :
     group = group + SConscript(os.path.join(cwd, 'common', 'SConscript'))
 
+
 # cpu porting code files
-    group = group + SConscript(os.path.join(cwd, rtconfig.CPU, 'SConscript'))
+group = group + SConscript(os.path.join(cwd, rtconfig.CPU, 'SConscript'))
 
 Return('group')

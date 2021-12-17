@@ -5,7 +5,13 @@ ARCH        ='risc-v'
 CPU         ='c906'
 CROSS_TOOL  ='gcc'
 
-RTT_ROOT = os.getenv('RTT_ROOT') or os.path.join(os.getcwd(),'..','..')
+if os.getenv('RTT_ROOT'):
+    RTT_ROOT = os.getenv('RTT_ROOT')
+else:
+    RTT_ROOT = os.path.join(os.getcwd(), '..', '..')
+
+# print("hello")
+# print(RTT_ROOT)
 
 if os.getenv('RTT_CC'):
     CROSS_TOOL = os.getenv('RTT_CC')

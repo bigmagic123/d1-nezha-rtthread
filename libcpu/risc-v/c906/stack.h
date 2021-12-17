@@ -13,6 +13,8 @@
 #define __STACK_H__
 
 #include <rtthread.h>
+#include "cpuport.h"
+
 struct rt_hw_stack_frame
 {
     rt_ubase_t epc;        /* epc - epc    - program counter                     */

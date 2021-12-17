@@ -64,8 +64,8 @@ __restore_sp_from_sscratch_interrupt:
 __restore_sp_from_tcb_interrupt:
     la    s0, rt_interrupt_from_thread
     LOAD  a0, 0(s0)
-    jal rt_thread_sp_to_thread
-    jal get_thread_kernel_stack_top
+    /*jal rt_thread_sp_to_thread */
+    /*jal get_thread_kernel_stack_top*/
     mv t0, a0
 
 __move_stack_context_interrupt:
@@ -115,7 +115,7 @@ __restore_sp_from_sscratch:
 __restore_sp_from_tcb:
     la a0, rt_current_thread
     LOAD a0, 0(a0)
-    jal get_thread_kernel_stack_top
+    /*jal get_thread_kernel_stack_top*/
     mv t0, a0
 
 __move_stack_context:
@@ -136,7 +136,7 @@ copy_context_loop:
 
     LOAD s0, 7 * REGBYTES(sp)
     addi s0, s0, -0xfe
-    beqz s0, lwp_signal_quit
+    /* beqz s0, lwp_signal_quit */
 
     mv a0, sp
     OPEN_INTERRUPT

@@ -16,7 +16,7 @@
 #include "cpuport.h"
 #include "stack.h"
 
-#include <lwp_arch.h>
+//#include <lwp_arch.h>
 
 
 /**
@@ -91,7 +91,8 @@ rt_uint8_t *rt_hw_stack_init(void       *tentry,
  * #endif
  */
 #ifndef RT_USING_SMP
-void rt_hw_context_switch_interrupt(rt_ubase_t from, rt_ubase_t to, rt_thread_t from_thread, rt_thread_t to_thread)
+#if 1
+void rt_hw_context_switch_interrupt(rt_ubase_t from, rt_ubase_t to)
 {
     if (rt_thread_switch_interrupt_flag == 0)
         rt_interrupt_from_thread = from;
@@ -101,6 +102,7 @@ void rt_hw_context_switch_interrupt(rt_ubase_t from, rt_ubase_t to, rt_thread_t 
 
     return ;
 }
+#endif
 #endif /* end of RT_USING_SMP */
 
 /** shutdown CPU */
