@@ -1,0 +1,11 @@
+from building import *
+
+# The set of source files associated with this SConscript file.
+src = Glob('*.c')
+cwd = GetCurrentDir()
+CPPPATH = [cwd + "/include"]
+
+if GetDepend('RT_USING_LWP'):
+    group = DefineGroup('tty', src, depend = ['RT_USING_TTY'], CPPPATH = CPPPATH)
+
+Return('group')

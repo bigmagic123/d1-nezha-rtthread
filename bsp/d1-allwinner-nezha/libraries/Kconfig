@@ -1,0 +1,3 @@
+menuconfig RT_USING_SUNXI_HAL
+    bool "HAL library from sunxi"
+    default n

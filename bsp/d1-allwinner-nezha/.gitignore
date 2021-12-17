@@ -1,0 +1,9 @@
+__pycache__/
+rtthread.bin
+rtthread.elf
+*.map
+build/
+.sconsign.dblite
+cconfig.h
+.vscode/
+rtconfig.pyc
