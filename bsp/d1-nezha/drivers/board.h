@@ -12,6 +12,7 @@
 #define BOARD_H__
 
 #include <rtconfig.h>
+#include "common.h"
 
 extern unsigned int __bss_start;
 extern unsigned int __bss_end;
