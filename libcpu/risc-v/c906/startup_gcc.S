@@ -35,7 +35,7 @@ _start:
 
     la sp, __stack_cpu0
     jal clear_bss
-    jal  primary_cpu_entry
+    jal  entry
     j .
 
 clear_bss:
