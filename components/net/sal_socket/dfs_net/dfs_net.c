@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2018, RT-Thread Development Team
+ * Copyright (c) 2006-2021, RT-Thread Development Team
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -26,64 +26,39 @@ int dfs_net_getsocket(int fd)
     _dfs_fd = fd_get(fd);
     if (_dfs_fd == NULL) return -1;
 
-    if (_dfs_fd->fnode->type != FT_SOCKET) socket = -1;
-    else socket = (int)(size_t)_dfs_fd->fnode->data;
+    if (_dfs_fd->type != FT_SOCKET) socket = -1;
+    else socket = (int)_dfs_fd->data;
 
+    fd_put(_dfs_fd); /* put this dfs fd */
     return socket;
 }
 
 static int dfs_net_ioctl(struct dfs_fd* file, int cmd, void* args)
 {
-    int ret;
-    int socket = (int)(size_t)file->fnode->data;
+    int socket = (int) file->data;
 
-    ret = sal_ioctlsocket(socket, cmd, args);
-    if (ret < 0)
-    {
-        ret = rt_get_errno();
-        return (ret > 0) ? (-ret) : ret;
-    }
-    return ret;
+    return sal_ioctlsocket(socket, cmd, args);
 }
 
 static int dfs_net_read(struct dfs_fd* file, void *buf, size_t count)
 {
-    int ret;
-    int socket = (int)(size_t)file->fnode->data;
+    int socket = (int) file->data;
 
-    ret = sal_recvfrom(socket, buf, count, 0, NULL, NULL);
-    if (ret < 0)
-    {
-        ret = rt_get_errno();
-        return (ret > 0) ? (-ret) : ret;
-    }
-    return ret;
+    return sal_recvfrom(socket, buf, count, 0, NULL, NULL);
 }
 
 static int dfs_net_write(struct dfs_fd *file, const void *buf, size_t count)
 {
-    int ret;
-    int socket = (int)(size_t)file->fnode->data;
-    
-    ret = sal_sendto(socket, buf, count, 0, NULL, 0);
-    if (ret < 0)
-    {
-        ret = rt_get_errno();
-        return (ret > 0) ? (-ret) : ret;
-    }
-    return ret;
+    int socket = (int) file->data;
+
+    return sal_sendto(socket, buf, count, 0, NULL, 0);
 }
+
 static int dfs_net_close(struct dfs_fd* file)
 {
-    int socket;
-    int ret = 0;
+    int socket = (int) file->data;
 
-    if (file->fnode->ref_count == 1)
-    {
-        socket = (int)(size_t)file->fnode->data;
-        ret = sal_closesocket(socket);
-    }
-    return ret;
+    return sal_closesocket(socket);
 }
 
 static int dfs_net_poll(struct dfs_fd *file, struct rt_pollreq *req)

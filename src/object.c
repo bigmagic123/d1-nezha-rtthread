@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2018, RT-Thread Development Team
+ * Copyright (c) 2006-2021, RT-Thread Development Team
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -20,21 +20,10 @@
 
 #ifdef RT_USING_MODULE
 #include <dlmodule.h>
-#endif
-
-#ifdef RT_USING_LWP
-#include <lwp.h>
-#endif
-
-struct rt_custom_object
-{
-    struct rt_object parent;
-    rt_err_t (*destroy)(void *);
-    void *data;
-};
+#endif /* RT_USING_MODULE */
 
 /*
- * define object_info for the number of rt_object_container items.
+ * define object_info for the number of _object_container items.
  */
 enum rt_object_info_type
 {
@@ -67,18 +56,16 @@ enum rt_object_info_type
 #ifdef RT_USING_MODULE
     RT_Object_Info_Module,                             /**< The object is a module. */
 #endif
-#ifdef RT_USING_LWP
-    RT_Object_Info_Channel,                            /**< The object is a IPC channel */
-#endif
 #ifdef RT_USING_HEAP
-    RT_Object_Info_Custom,                             /**< The object is a custom object */
+    RT_Object_Info_Memory,                            /**< The object is a memory. */
 #endif
     RT_Object_Info_Unknown,                            /**< The object is unknown. */
 };
 
 #define _OBJ_CONTAINER_LIST_INIT(c)     \
-    {&(rt_object_container[c].object_list), &(rt_object_container[c].object_list)}
-static struct rt_object_information rt_object_container[RT_Object_Info_Unknown] =
+    {&(_object_container[c].object_list), &(_object_container[c].object_list)}
+
+static struct rt_object_information _object_container[RT_Object_Info_Unknown] =
 {
     /* initialize object container - thread */
     {RT_Object_Class_Thread, _OBJ_CONTAINER_LIST_INIT(RT_Object_Info_Thread), sizeof(struct rt_thread)},
@@ -120,10 +107,9 @@ static struct rt_object_information rt_object_container[RT_Object_Info_Unknown] 
     /* initialize object container - module */
     {RT_Object_Class_Module, _OBJ_CONTAINER_LIST_INIT(RT_Object_Info_Module), sizeof(struct rt_dlmodule)},
 #endif
-#ifdef RT_USING_LWP
-    /* initialize object container - module */
-    {RT_Object_Class_Channel, _OBJ_CONTAINER_LIST_INIT(RT_Object_Info_Channel), sizeof(struct rt_channel)},
-    {RT_Object_Class_Custom, _OBJ_CONTAINER_LIST_INIT(RT_Object_Info_Custom), sizeof(struct rt_custom_object)},
+#ifdef RT_USING_HEAP
+    /* initialize object container - small memory */
+    {RT_Object_Class_Memory, _OBJ_CONTAINER_LIST_INIT(RT_Object_Info_Memory), sizeof(struct rt_memory)},
 #endif
 };
 
@@ -141,10 +127,10 @@ void (*rt_object_put_hook)(struct rt_object *object);
 /**@{*/
 
 /**
- * This function will set a hook function, which will be invoked when object
- * attaches to kernel object system.
+ * @brief This function will set a hook function, which will be invoked when object
+ *        attaches to kernel object system.
  *
- * @param hook the hook function
+ * @param hook is the hook function.
  */
 void rt_object_attach_sethook(void (*hook)(struct rt_object *object))
 {
@@ -152,10 +138,10 @@ void rt_object_attach_sethook(void (*hook)(struct rt_object *object))
 }
 
 /**
- * This function will set a hook function, which will be invoked when object
- * detaches from kernel object system.
+ * @brief This function will set a hook function, which will be invoked when object
+ *        detaches from kernel object system.
  *
- * @param hook the hook function
+ * @param hook is the hook function
  */
 void rt_object_detach_sethook(void (*hook)(struct rt_object *object))
 {
@@ -163,17 +149,17 @@ void rt_object_detach_sethook(void (*hook)(struct rt_object *object))
 }
 
 /**
- * This function will set a hook function, which will be invoked when object
- * is taken from kernel object system.
+ * @brief This function will set a hook function, which will be invoked when object
+ *        is taken from kernel object system.
  *
- * The object is taken means:
- * semaphore - semaphore is taken by thread
- * mutex - mutex is taken by thread
- * event - event is received by thread
- * mailbox - mail is received by thread
- * message queue - message is received by thread
+ *        The object is taken means:
+ *            semaphore - semaphore is taken by thread
+ *            mutex - mutex is taken by thread
+ *            event - event is received by thread
+ *            mailbox - mail is received by thread
+ *            message queue - message is received by thread
  *
- * @param hook the hook function
+ * @param hook is the hook function.
  */
 void rt_object_trytake_sethook(void (*hook)(struct rt_object *object))
 {
@@ -181,18 +167,18 @@ void rt_object_trytake_sethook(void (*hook)(struct rt_object *object))
 }
 
 /**
- * This function will set a hook function, which will be invoked when object
- * have been taken from kernel object system.
+ * @brief This function will set a hook function, which will be invoked when object
+ *        have been taken from kernel object system.
  *
- * The object have been taken means:
- * semaphore - semaphore have been taken by thread
- * mutex - mutex have been taken by thread
- * event - event have been received by thread
- * mailbox - mail have been received by thread
- * message queue - message have been received by thread
- * timer - timer is started
+ *        The object have been taken means:
+ *            semaphore - semaphore have been taken by thread
+ *            mutex - mutex have been taken by thread
+ *            event - event have been received by thread
+ *            mailbox - mail have been received by thread
+ *            message queue - message have been received by thread
+ *            timer - timer is started
  *
- * @param hook the hook function
+ * @param hook the hook function.
  */
 void rt_object_take_sethook(void (*hook)(struct rt_object *object))
 {
@@ -200,10 +186,10 @@ void rt_object_take_sethook(void (*hook)(struct rt_object *object))
 }
 
 /**
- * This function will set a hook function, which will be invoked when object
- * is put to kernel object system.
+ * @brief This function will set a hook function, which will be invoked when object
+ *        is put to kernel object system.
  *
- * @param hook the hook function
+ * @param hook is the hook function
  */
 void rt_object_put_sethook(void (*hook)(struct rt_object *object))
 {
@@ -211,19 +197,7 @@ void rt_object_put_sethook(void (*hook)(struct rt_object *object))
 }
 
 /**@}*/
-#endif
-
-/**
- * @ingroup SystemInit
- *
- * This function will initialize system object management.
- *
- * @deprecated since 0.3.0, this function does not need to be invoked
- * in the system initialization.
- */
-void rt_system_object_init(void)
-{
-}
+#endif /* RT_USING_HOOK */
 
 /**
  * @addtogroup KernelObject
@@ -232,9 +206,9 @@ void rt_system_object_init(void)
 /**@{*/
 
 /**
- * This function will return the specified type of object information.
+ * @brief This function will return the specified type of object information.
  *
- * @param type the type of object, which can be
+ * @param type is the type of object, which can be
  *             RT_Object_Class_Thread/Semaphore/Mutex... etc
  *
  * @return the object type information or RT_NULL
@@ -245,17 +219,18 @@ rt_object_get_information(enum rt_object_class_type type)
     int index;
 
     for (index = 0; index < RT_Object_Info_Unknown; index ++)
-        if (rt_object_container[index].type == type) return &rt_object_container[index];
+        if (_object_container[index].type == type) return &_object_container[index];
 
     return RT_NULL;
 }
 RTM_EXPORT(rt_object_get_information);
 
 /**
- * This function will return the length of object list in object container.
+ * @brief This function will return the length of object list in object container.
  *
- * @param type the type of object, which can be
+ * @param type is the type of object, which can be
  *             RT_Object_Class_Thread/Semaphore/Mutex... etc
+ *
  * @return the length of object list
  */
 int rt_object_get_length(enum rt_object_class_type type)
@@ -281,15 +256,17 @@ int rt_object_get_length(enum rt_object_class_type type)
 RTM_EXPORT(rt_object_get_length);
 
 /**
- * This function will copy the object pointer of the specified type,
- * with the maximum size specified by maxlen.
+ * @brief This function will copy the object pointer of the specified type,
+ *        with the maximum size specified by maxlen.
  *
- * @param type the type of object, which can be
+ * @param type is the type of object, which can be
  *             RT_Object_Class_Thread/Semaphore/Mutex... etc
- * @param pointers the pointers will be saved to
- * @param maxlen the maximum number of pointers can be saved
  *
- * @return the copied number of object pointers
+ * @param pointers is the pointer will be saved to.
+ *
+ * @param maxlen is the maximum number of pointers can be saved.
+ *
+ * @return the copied number of object pointers.
  */
 int rt_object_get_pointers(enum rt_object_class_type type, rt_object_t *pointers, int maxlen)
 {
@@ -323,12 +300,14 @@ int rt_object_get_pointers(enum rt_object_class_type type, rt_object_t *pointers
 RTM_EXPORT(rt_object_get_pointers);
 
 /**
- * This function will initialize an object and add it to object system
- * management.
+ * @brief This function will initialize an object and add it to object system
+ *        management.
  *
- * @param object the specified object to be initialized.
- * @param type the object type.
- * @param name the object name. In system, the object's name must be unique.
+ * @param object is the specified object to be initialized.
+ *
+ * @param type is the object type.
+ *
+ * @param name is the object name. In system, the object's name must be unique.
  */
 void rt_object_init(struct rt_object         *object,
                     enum rt_object_class_type type,
@@ -339,7 +318,7 @@ void rt_object_init(struct rt_object         *object,
     struct rt_object_information *information;
 #ifdef RT_USING_MODULE
     struct rt_dlmodule *module = dlmodule_self();
-#endif
+#endif /* RT_USING_MODULE */
 
     /* get object information */
     information = rt_object_get_information(type);
@@ -383,7 +362,7 @@ void rt_object_init(struct rt_object         *object,
         object->module_id = (void *)module;
     }
     else
-#endif
+#endif /* RT_USING_MODULE */
     {
         /* insert object into information object list */
         rt_list_insert_after(&(information->object_list), &(object->list));
@@ -394,8 +373,8 @@ void rt_object_init(struct rt_object         *object,
 }
 
 /**
- * This function will detach a static object from object system,
- * and the memory of static object is not freed.
+ * @brief This function will detach a static object from object system,
+ *        and the memory of static object is not freed.
  *
  * @param object the specified object to be detached.
  */
@@ -423,10 +402,11 @@ void rt_object_detach(rt_object_t object)
 
 #ifdef RT_USING_HEAP
 /**
- * This function will allocate an object from object system
+ * @brief This function will allocate an object from object system.
  *
- * @param type the type of object
- * @param name the object name. In system, the object's name must be unique.
+ * @param type is the type of object.
+ *
+ * @param name is the object name. In system, the object's name must be unique.
  *
  * @return object
  */
@@ -437,7 +417,7 @@ rt_object_t rt_object_allocate(enum rt_object_class_type type, const char *name)
     struct rt_object_information *information;
 #ifdef RT_USING_MODULE
     struct rt_dlmodule *module = dlmodule_self();
-#endif
+#endif /* RT_USING_MODULE */
 
     RT_DEBUG_NOT_IN_INTERRUPT;
 
@@ -478,7 +458,7 @@ rt_object_t rt_object_allocate(enum rt_object_class_type type, const char *name)
         object->module_id = (void *)module;
     }
     else
-#endif
+#endif /* RT_USING_MODULE */
     {
         /* insert object into information object list */
         rt_list_insert_after(&(information->object_list), &(object->list));
@@ -492,9 +472,9 @@ rt_object_t rt_object_allocate(enum rt_object_class_type type, const char *name)
 }
 
 /**
- * This function will delete an object and release object memory.
+ * @brief This function will delete an object and release object memory.
  *
- * @param object the specified object to be deleted.
+ * @param object is the specified object to be deleted.
  */
 void rt_object_delete(rt_object_t object)
 {
@@ -507,7 +487,7 @@ void rt_object_delete(rt_object_t object)
     RT_OBJECT_HOOK_CALL(rt_object_detach_hook, (object));
 
     /* reset object type */
-    object->type = 0;
+    object->type = RT_Object_Class_Null;
 
     /* lock interrupt */
     temp = rt_hw_interrupt_disable();
@@ -521,14 +501,15 @@ void rt_object_delete(rt_object_t object)
     /* free the memory of object */
     RT_KERNEL_FREE(object);
 }
-#endif
+#endif /* RT_USING_HEAP */
 
 /**
- * This function will judge the object is system object or not.
- * Normally, the system object is a static object and the type
- * of object set to RT_Object_Class_Static.
+ * @brief This function will judge the object is system object or not.
  *
- * @param object the specified object to be judged.
+ * @note  Normally, the system object is a static object and the type
+ *        of object set to RT_Object_Class_Static.
+ *
+ * @param object is the specified object to be judged.
  *
  * @return RT_TRUE if a system object, RT_FALSE for others.
  */
@@ -544,10 +525,10 @@ rt_bool_t rt_object_is_systemobject(rt_object_t object)
 }
 
 /**
- * This function will return the type of object without
- * RT_Object_Class_Static flag.
+ * @brief This function will return the type of object without
+ *        RT_Object_Class_Static flag.
  *
- * @param object the specified object to be get type.
+ * @param object is the specified object to be get type.
  *
  * @return the type of object.
  */
@@ -560,11 +541,12 @@ rt_uint8_t rt_object_get_type(rt_object_t object)
 }
 
 /**
- * This function will find specified name object from object
- * container.
+ * @brief This function will find specified name object from object
+ *        container.
  *
- * @param name the specified name of object.
- * @param type the type of object
+ * @param name is the specified name of object.
+ *
+ * @param type is the type of object
  *
  * @return the found object or RT_NULL if there is no this object
  * in object container.
@@ -606,61 +588,5 @@ rt_object_t rt_object_find(const char *name, rt_uint8_t type)
 
     return RT_NULL;
 }
-
-#ifdef RT_USING_HEAP
-/**
- * This function will create a custom object
- * container.
- *
- * @param name the specified name of object.
- * @param type the type of object
- * @param data the custom data
- * @param data_destroy the custom object destroy callback
- *
- * @return the found object or RT_NULL if there is no this object
- * in object container.
- *
- * @note this function shall not be invoked in interrupt status.
- */
-
-rt_object_t rt_custom_object_create(const char *name, void *data, rt_err_t (*data_destroy)(void *))
-{
-    struct rt_custom_object *cobj = RT_NULL;
-
-    cobj = (struct rt_custom_object *)rt_object_allocate(RT_Object_Class_Custom, name);
-    if (!cobj)
-    {
-        return RT_NULL;
-    }
-    cobj->destroy = data_destroy;
-    cobj->data = data;
-    return (struct rt_object *)cobj;
-}
-
-/**
- * This function will destroy a custom object
- * container.
- *
- * @param obj the specified name of object.
- *
- * @note this function shall not be invoked in interrupt status.
- */
-rt_err_t rt_custom_object_destroy(rt_object_t obj)
-{
-    rt_err_t ret = -1;
-
-    struct rt_custom_object *cobj = (struct rt_custom_object *)obj;
-
-    if (obj && obj->type == RT_Object_Class_Custom)
-    {
-        if (cobj->destroy)
-        {
-            ret = cobj->destroy(cobj->data);
-        }
-        rt_object_delete(obj);
-    }
-    return ret;
-}
-#endif
 
 /**@}*/

@@ -1,6 +1,6 @@
 /*
- * COPYRIGHT (C) 2018, Real-Thread Information Technology Ltd
- * 
+ * COPYRIGHT (C) 2011-2021, Real-Thread Information Technology Ltd
+ *
  * SPDX-License-Identifier: Apache-2.0
  *
  * Change Logs:
@@ -35,9 +35,7 @@ static rt_size_t _mtd_read(rt_device_t dev,
                            void       *buffer,
                            rt_size_t   size)
 {
-    struct rt_mtd_nor_device *device = (struct rt_mtd_nor_device *)dev;
-
-    return device->ops->read(device, pos + device->block_start, buffer, size);
+    return size;
 }
 
 static rt_size_t _mtd_write(rt_device_t dev,
@@ -45,9 +43,7 @@ static rt_size_t _mtd_write(rt_device_t dev,
                             const void *buffer,
                             rt_size_t   size)
 {
-    struct rt_mtd_nor_device *device = (struct rt_mtd_nor_device *)dev;
-
-    return device->ops->write(device, pos + device->block_start, buffer, size);
+    return size;
 }
 
 static rt_err_t _mtd_control(rt_device_t dev, int cmd, void *args)
@@ -56,7 +52,7 @@ static rt_err_t _mtd_control(rt_device_t dev, int cmd, void *args)
 }
 
 #ifdef RT_USING_DEVICE_OPS
-const static struct rt_device_ops mtd_nor_ops = 
+const static struct rt_device_ops mtd_nor_ops =
 {
     _mtd_init,
     _mtd_open,

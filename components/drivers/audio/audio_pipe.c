@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2018, RT-Thread Development Team
+ * Copyright (c) 2006-2021, RT-Thread Development Team
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -9,9 +9,7 @@
  */
 
 #include <rthw.h>
-#include <rtthread.h>
 #include <rtdevice.h>
-
 #include "audio_pipe.h"
 
 static void _rt_pipe_resume_writer(struct rt_audio_pipe *pipe)
@@ -72,7 +70,7 @@ static rt_size_t rt_pipe_read(rt_device_t dev,
         read_nbytes = rt_ringbuffer_get(&(pipe->ringbuffer), (rt_uint8_t *)buffer, size);
         if (read_nbytes == 0)
         {
-            rt_thread_suspend_with_flag(thread, RT_UNINTERRUPTIBLE);
+            rt_thread_suspend(thread);
             /* waiting on suspended read list */
             rt_list_insert_before(&(pipe->suspended_read_list),
                                   &(thread->tlist));
@@ -160,7 +158,7 @@ static rt_size_t rt_pipe_write(rt_device_t dev,
         if (write_nbytes == 0)
         {
             /* pipe full, waiting on suspended write list */
-            rt_thread_suspend_with_flag(thread, RT_UNINTERRUPTIBLE);
+            rt_thread_suspend(thread);
             /* waiting on suspended read list */
             rt_list_insert_before(&(pipe->suspended_write_list),
                                   &(thread->tlist));

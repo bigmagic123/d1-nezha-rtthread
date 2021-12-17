@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2018, RT-Thread Development Team
+ * Copyright (c) 2006-2021, RT-Thread Development Team
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -12,7 +12,6 @@
  * 2017-10-17     Hichard      add some micros
  * 2018-11-17     Jesven       add rt_hw_spinlock_t
  *                             add smp support
- * 2019-05-18     Bernard      add empty definition for not enable cache case
  */
 
 #ifndef __RT_HW_H__
@@ -50,7 +49,6 @@ enum RT_HW_CACHE_OPS
 /*
  * CPU interfaces
  */
-#ifdef RT_USING_CACHE
 void rt_hw_cpu_icache_enable(void);
 void rt_hw_cpu_icache_disable(void);
 rt_base_t rt_hw_cpu_icache_status(void);
@@ -60,20 +58,6 @@ void rt_hw_cpu_dcache_enable(void);
 void rt_hw_cpu_dcache_disable(void);
 rt_base_t rt_hw_cpu_dcache_status(void);
 void rt_hw_cpu_dcache_ops(int ops, void* addr, int size);
-#else
-
-/* define cache ops as empty */
-#define rt_hw_cpu_icache_enable(...)
-#define rt_hw_cpu_icache_disable(...)
-#define rt_hw_cpu_icache_ops(...)
-#define rt_hw_cpu_dcache_enable(...)
-#define rt_hw_cpu_dcache_disable(...)
-#define rt_hw_cpu_dcache_ops(...)
-
-#define rt_hw_cpu_icache_status(...) 0
-#define rt_hw_cpu_dcache_status(...) 0
-
-#endif
 
 void rt_hw_cpu_reset(void);
 void rt_hw_cpu_shutdown(void);
@@ -132,7 +116,7 @@ void rt_hw_context_switch_interrupt(void *context, rt_ubase_t from, rt_ubase_t t
 #else
 void rt_hw_context_switch(rt_ubase_t from, rt_ubase_t to);
 void rt_hw_context_switch_to(rt_ubase_t to);
-void rt_hw_context_switch_interrupt(rt_ubase_t from, rt_ubase_t to, rt_thread_t from_thread, rt_thread_t to_thread);
+void rt_hw_context_switch_interrupt(rt_ubase_t from, rt_ubase_t to);
 #endif /*RT_USING_SMP*/
 
 void rt_hw_console_output(const char *str);
@@ -151,7 +135,13 @@ void rt_hw_exception_install(rt_err_t (*exception_handle)(void *context));
 void rt_hw_us_delay(rt_uint32_t us);
 
 #ifdef RT_USING_SMP
-#include <cpuport.h> /* for spinlock from arch */
+typedef union {
+    unsigned long slock;
+    struct __arch_tickets {
+        unsigned short owner;
+        unsigned short next;
+    } tickets;
+} rt_hw_spinlock_t;
 
 struct rt_spinlock
 {
@@ -197,16 +187,6 @@ void rt_hw_secondary_cpu_idle_exec(void);
 #define rt_hw_spin_lock(lock)     *(lock) = rt_hw_interrupt_disable()
 #define rt_hw_spin_unlock(lock)   rt_hw_interrupt_enable(*(lock))
 
-typedef int rt_spinlock_t;
-
-#endif
-
-#ifdef RT_USING_CACHE
-#include <cpuport.h>
-#else
-#define rt_hw_isb()
-#define rt_hw_dmb()
-#define rt_hw_dsb()
 #endif
 
 #ifdef __cplusplus

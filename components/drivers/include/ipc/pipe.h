@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2018, RT-Thread Development Team
+ * Copyright (c) 2006-2021, RT-Thread Development Team
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -15,23 +15,17 @@
 #include <rtthread.h>
 #include <rtdevice.h>
 
-#ifndef RT_PIPE_BUFSZ
-#define PIPE_BUFSZ    512
-#else
-#define PIPE_BUFSZ    RT_PIPE_BUFSZ
-#endif
-
 struct rt_pipe_device
 {
     struct rt_device parent;
     rt_bool_t is_named;
-#ifdef RT_USING_POSIX
-    int pipeno; /* for unamed pipe */
-#endif
 
     /* ring buffer in pipe device */
     struct rt_ringbuffer *fifo;
     rt_uint16_t bufsz;
+
+    rt_uint8_t readers;
+    rt_uint8_t writers;
 
     rt_wqueue_t reader_queue;
     rt_wqueue_t writer_queue;

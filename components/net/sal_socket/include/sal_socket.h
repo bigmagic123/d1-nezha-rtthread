@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2018, RT-Thread Development Team
+ * Copyright (c) 2006-2021, RT-Thread Development Team
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -11,6 +11,7 @@
 #ifndef SAL_SOCKET_H__
 #define SAL_SOCKET_H__
 
+#include <stddef.h>
 #include <arpa/inet.h>
 
 #ifdef __cplusplus
@@ -35,12 +36,8 @@ typedef uint16_t in_port_t;
 #define SOCK_STREAM     1
 #define SOCK_DGRAM      2
 #define SOCK_RAW        3
-#define SOCK_PACKET     10
 
-#define SOCK_NONBLOCK   04000
-#define SOCK_CLOEXEC    02000000
-
-#define SOCK_MAX        (SOCK_CLOEXEC + 1)
+#define SOCK_MAX        (SOCK_RAW + 1)
 
 /* Option flags per-socket. These must match the SOF_ flags in ip.h (checked in init.c) */
 #define SO_REUSEADDR    0x0004 /* Allow local address reuse */
@@ -175,7 +172,7 @@ struct sockaddr_in
 #endif /* NETDEV_IPV4 */
 
 #if NETDEV_IPV6
-struct sockaddr_in6 
+struct sockaddr_in6
 {
   uint8_t         sin6_len;      /* length of this structure    */
   sa_family_t     sin6_family;   /* AF_INET6                    */
@@ -195,40 +192,6 @@ struct sockaddr_storage
 #if NETDEV_IPV6
     uint32_t       s2_data3[3];
 #endif /* NETDEV_IPV6 */
-};
-
-#define IFNAMSIZ	16
-struct sal_ifmap 
-{
-    unsigned long int mem_start;
-    unsigned long int mem_end;
-    unsigned short int base_addr;
-    unsigned char irq;
-    unsigned char dma;
-    unsigned char port;
-};
-
-struct sal_ifreq 
-{
-    union 
-    {
-        char ifrn_name[IFNAMSIZ];
-    } ifr_ifrn;
-    union 
-    {
-        struct sockaddr ifru_addr;
-        struct sockaddr ifru_dstaddr;
-        struct sockaddr ifru_broadaddr;
-        struct sockaddr ifru_netmask;
-        struct sockaddr ifru_hwaddr;
-        short int ifru_flags;
-        int ifru_ivalue;
-        int ifru_mtu;
-        struct sal_ifmap ifru_map;
-        char ifru_slave[IFNAMSIZ];
-        char ifru_newname[IFNAMSIZ];
-        char *ifru_data;
-    } ifr_ifru;
 };
 
 int sal_accept(int socket, struct sockaddr *addr, socklen_t *addrlen);

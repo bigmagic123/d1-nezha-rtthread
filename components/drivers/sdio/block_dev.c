@@ -357,8 +357,8 @@ rt_int32_t rt_mmcsd_blk_probe(struct rt_mmcsd_card *card)
     rt_int32_t err = 0;
     rt_uint8_t i, status;
     rt_uint8_t *sector;
-    char dname[10];
-    char sname[16];
+    char dname[4];
+    char sname[8];
     struct mmcsd_blk_device *blk_dev = RT_NULL;
 
     err = mmcsd_set_blksize(card);
@@ -381,46 +381,6 @@ rt_int32_t rt_mmcsd_blk_probe(struct rt_mmcsd_card *card)
     status = rt_mmcsd_req_blk(card, 0, sector, 1, 0);
     if (status == RT_EOK)
     {
-        blk_dev = rt_calloc(1, sizeof(struct mmcsd_blk_device));
-        if (!blk_dev)
-        {
-            LOG_E("mmcsd:malloc memory failed!");
-            return -1;
-        }
-
-        blk_dev->max_req_size = BLK_MIN((card->host->max_dma_segs *
-                                         card->host->max_seg_size) >> 9,
-                                        (card->host->max_blk_count *
-                                         card->host->max_blk_size) >> 9);
-        blk_dev->part.offset = 0;
-        blk_dev->part.size   = 0;
-        rt_snprintf(sname, sizeof(sname)-1, "sem_%s%d", card->host->name,0);
-        blk_dev->part.lock = rt_sem_create(sname, 1, RT_IPC_FLAG_FIFO);
-        /* register mmcsd device */
-        blk_dev->dev.type  = RT_Device_Class_Block;
-#ifdef RT_USING_DEVICE_OPS
-        blk_dev->dev.ops  = &mmcsd_blk_ops;
-#else
-        blk_dev->dev.init = rt_mmcsd_init;
-        blk_dev->dev.open = rt_mmcsd_open;
-        blk_dev->dev.close = rt_mmcsd_close;
-        blk_dev->dev.read = rt_mmcsd_read;
-        blk_dev->dev.write = rt_mmcsd_write;
-        blk_dev->dev.control = rt_mmcsd_control;
-#endif
-        blk_dev->card = card;
-
-        blk_dev->geometry.bytes_per_sector = 1<<9;
-        blk_dev->geometry.block_size = card->card_blksize;
-        blk_dev->geometry.sector_count =
-            card->card_capacity * (1024 / 512);
-
-        blk_dev->dev.user_data = blk_dev;
-
-        rt_device_register(&(blk_dev->dev), card->host->name,
-            RT_DEVICE_FLAG_RDWR);
-        rt_list_insert_after(&blk_devices, &blk_dev->list);
-
         for (i = 0; i < RT_MMCSD_MAX_PARTITION; i++)
         {
             blk_dev = rt_calloc(1, sizeof(struct mmcsd_blk_device));
@@ -439,8 +399,8 @@ rt_int32_t rt_mmcsd_blk_probe(struct rt_mmcsd_card *card)
             status = dfs_filesystem_get_partition(&blk_dev->part, sector, i);
             if (status == RT_EOK)
             {
-                rt_snprintf(dname, sizeof(dname)-1, "%s%d", card->host->name,i);
-                rt_snprintf(sname, sizeof(sname)-1, "sem_%s%d", card->host->name,i+1);
+                rt_snprintf(dname, 4, "sd%d",  i);
+                rt_snprintf(sname, 8, "sem_sd%d",  i);
                 blk_dev->part.lock = rt_sem_create(sname, 1, RT_IPC_FLAG_FIFO);
 
                 /* register mmcsd device */
@@ -455,23 +415,58 @@ rt_int32_t rt_mmcsd_blk_probe(struct rt_mmcsd_card *card)
                 blk_dev->dev.write = rt_mmcsd_write;
                 blk_dev->dev.control = rt_mmcsd_control;
 #endif
+                blk_dev->dev.user_data = blk_dev;
+
                 blk_dev->card = card;
 
                 blk_dev->geometry.bytes_per_sector = 1<<9;
                 blk_dev->geometry.block_size = card->card_blksize;
                 blk_dev->geometry.sector_count = blk_dev->part.size;
 
-                blk_dev->dev.user_data = blk_dev;
-
-                rt_device_register(&(blk_dev->dev), dname,
-                    RT_DEVICE_FLAG_RDWR);
+                rt_device_register(&blk_dev->dev, dname,
+                    RT_DEVICE_FLAG_RDWR | RT_DEVICE_FLAG_REMOVABLE | RT_DEVICE_FLAG_STANDALONE);
                 rt_list_insert_after(&blk_devices, &blk_dev->list);
             }
             else
             {
-                rt_free(blk_dev);
-                blk_dev = RT_NULL;
-                break;
+                if (i == 0)
+                {
+                    /* there is no partition table */
+                    blk_dev->part.offset = 0;
+                    blk_dev->part.size   = 0;
+                    blk_dev->part.lock = rt_sem_create("sem_sd0", 1, RT_IPC_FLAG_FIFO);
+
+                    /* register mmcsd device */
+                    blk_dev->dev.type  = RT_Device_Class_Block;
+#ifdef RT_USING_DEVICE_OPS
+                    blk_dev->dev.ops  = &mmcsd_blk_ops;
+#else
+                    blk_dev->dev.init = rt_mmcsd_init;
+                    blk_dev->dev.open = rt_mmcsd_open;
+                    blk_dev->dev.close = rt_mmcsd_close;
+                    blk_dev->dev.read = rt_mmcsd_read;
+                    blk_dev->dev.write = rt_mmcsd_write;
+                    blk_dev->dev.control = rt_mmcsd_control;
+#endif
+                    blk_dev->dev.user_data = blk_dev;
+
+                    blk_dev->card = card;
+
+                    blk_dev->geometry.bytes_per_sector = 1<<9;
+                    blk_dev->geometry.block_size = card->card_blksize;
+                    blk_dev->geometry.sector_count =
+                        card->card_capacity * (1024 / 512);
+
+                    rt_device_register(&blk_dev->dev, "sd0",
+                        RT_DEVICE_FLAG_RDWR | RT_DEVICE_FLAG_REMOVABLE | RT_DEVICE_FLAG_STANDALONE);
+                    rt_list_insert_after(&blk_devices, &blk_dev->list);
+                }
+                else
+                {
+                    rt_free(blk_dev);
+                    blk_dev = RT_NULL;
+                    break;
+                }
             }
 
 #ifdef RT_USING_DFS_MNTTABLE
@@ -519,16 +514,4 @@ void rt_mmcsd_blk_remove(struct rt_mmcsd_card *card)
             rt_free(blk_dev);
         }
     }
-}
-
-/*
- * This function will initialize block device on the mmc/sd.
- *
- * @deprecated since 2.1.0, this function does not need to be invoked
- * in the system initialization.
- */
-int rt_mmcsd_blk_init(void)
-{
-    /* nothing */
-    return 0;
 }

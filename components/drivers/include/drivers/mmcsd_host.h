@@ -59,7 +59,6 @@ struct rt_mmcsd_host_ops {
 };
 
 struct rt_mmcsd_host {
-    char name[RT_NAME_MAX];
     struct rt_mmcsd_card *card;
     const struct rt_mmcsd_host_ops *ops;
     rt_uint32_t  freq_min;

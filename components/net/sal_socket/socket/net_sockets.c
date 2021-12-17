@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2018, RT-Thread Development Team
+ * Copyright (c) 2006-2021, RT-Thread Development Team
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -11,9 +11,9 @@
 
 #include <dfs.h>
 #include <dfs_file.h>
-#include <dfs_poll.h>
+#include <poll.h>
 #include <dfs_net.h>
-
+#include <sys/errno.h>
 #include <sys/socket.h>
 
 int accept(int s, struct sockaddr *addr, socklen_t *addrlen)
@@ -41,28 +41,20 @@ int accept(int s, struct sockaddr *addr, socklen_t *addrlen)
         if(d)
         {
             /* this is a socket fd */
-            d->fnode = (struct dfs_fnode *)rt_malloc(sizeof(struct dfs_fnode));
-            if (!d->fnode)
-            {
-                /* release fd */
-                fd_release(fd);
-                rt_set_errno(-ENOMEM);
-                return -1;
-            }
-            rt_memset(d->fnode, 0, sizeof(struct dfs_fnode));
-            rt_list_init(&d->fnode->list);
+            d->type = FT_SOCKET;
+            d->path = NULL;
 
-            d->fnode->type = FT_SOCKET;
-            d->fnode->path = NULL;
-            d->fnode->fullpath = NULL;
-            d->fnode->ref_count = 1;
-            d->fnode->fops = dfs_net_get_fops();
+            d->fops = dfs_net_get_fops();
+
             d->flags = O_RDWR; /* set flags as read and write */
-            d->fnode->size = 0;
+            d->size = 0;
             d->pos = 0;
 
             /* set socket to the data of dfs_fd */
-            d->fnode->data = (void *)(size_t)new_socket;
+            d->data = (void *) new_socket;
+
+            /* release the ref-count of fd */
+            fd_put(d);
 
             return fd;
         }
@@ -113,6 +105,8 @@ int shutdown(int s, int how)
         rt_set_errno(-ENOTSOCK);
         error = -1;
     }
+
+    fd_put(d);
 
     return error;
 }
@@ -216,43 +210,37 @@ int socket(int domain, int type, int protocol)
         return -1;
     }
     d = fd_get(fd);
-    d->fnode = (struct dfs_fnode *)rt_malloc(sizeof(struct dfs_fnode));
-    if (!d->fnode)
-    {
-        /* release fd */
-        fd_release(fd);
-        rt_set_errno(-ENOMEM);
-        return -1;
-    }
 
     /* create socket  and then put it to the dfs_fd */
     socket = sal_socket(domain, type, protocol);
     if (socket >= 0)
     {
-        rt_memset(d->fnode, 0, sizeof(struct dfs_fnode));
-        rt_list_init(&d->fnode->list);
         /* this is a socket fd */
-        d->fnode->type = FT_SOCKET;
-        d->fnode->path = NULL;
-        d->fnode->fullpath = NULL;
-        d->fnode->ref_count = 1;
-        d->fnode->fops = dfs_net_get_fops();
+        d->type = FT_SOCKET;
+        d->path = NULL;
+
+        d->fops = dfs_net_get_fops();
 
         d->flags = O_RDWR; /* set flags as read and write */
-        d->fnode->size = 0;
+        d->size = 0;
         d->pos = 0;
 
         /* set socket to the data of dfs_fd */
-        d->fnode->data = (void *)(size_t)socket;
+        d->data = (void *) socket;
     }
     else
     {
-        rt_free(d->fnode);
         /* release fd */
-        fd_release(fd);
+        fd_put(d);
+        fd_put(d);
+
         rt_set_errno(-ENOMEM);
+
         return -1;
     }
+
+    /* release the ref-count of fd */
+    fd_put(d);
 
     return fd;
 }
@@ -278,12 +266,6 @@ int closesocket(int s)
         return -1;
     }
 
-    if (!d->fnode)
-    {
-        rt_set_errno(-EBADF);
-        return -1;
-    }
-
     if (sal_closesocket(socket) == 0)
     {
         error = 0;
@@ -294,9 +276,9 @@ int closesocket(int s)
         error = -1;
     }
 
-    rt_free(d->fnode);
     /* socket has been closed, delete it from file system fd */
-    fd_release(s);
+    fd_put(d);
+    fd_put(d);
 
     return error;
 }

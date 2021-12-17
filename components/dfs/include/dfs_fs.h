@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2018, RT-Thread Development Team
+ * Copyright (c) 2006-2021, RT-Thread Development Team
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -12,6 +12,8 @@
 #define __DFS_FS_H__
 
 #include <dfs.h>
+#include <sys/types.h>
+#include <sys/errno.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -35,7 +37,7 @@ struct dfs_filesystem_ops
     int (*unmount)  (struct dfs_filesystem *fs);
 
     /* make a file system */
-    int (*mkfs)     (rt_device_t dev_id, const char *fs_name);
+    int (*mkfs)     (rt_device_t devid);
     int (*statfs)   (struct dfs_filesystem *fs, struct statfs *buf);
 
     int (*unlink)   (struct dfs_filesystem *fs, const char *pathname);

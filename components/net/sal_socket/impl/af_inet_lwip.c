@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2018, RT-Thread Development Team
+ * Copyright (c) 2006-2021, RT-Thread Development Team
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -17,7 +17,7 @@
 #include <lwip/netif.h>
 
 #ifdef SAL_USING_POSIX
-#include <dfs_poll.h>
+#include <poll.h>
 #endif
 
 #include <sal.h>
@@ -165,7 +165,7 @@ static void event_callback(struct netconn *conn, enum netconn_evt evt, u16_t len
 
     if (event)
     {
-        rt_wqueue_wakeup(&sock->wait_head, (void*)(size_t)event);
+        rt_wqueue_wakeup(&sock->wait_head, (void*) event);
     }
 }
 #endif /* SAL_USING_POSIX */
@@ -229,7 +229,7 @@ int inet_ioctlsocket(int socket, long cmd, void *arg)
     {
     case F_GETFL:
     case F_SETFL:
-        return lwip_fcntl(socket, cmd, (int)(size_t)arg);
+        return lwip_fcntl(socket, cmd, (int) arg);
 
     default:
         return lwip_ioctl(socket, cmd, arg);
@@ -243,13 +243,13 @@ static int inet_poll(struct dfs_fd *file, struct rt_pollreq *req)
     struct lwip_sock *sock;
     struct sal_socket *sal_sock;
 
-    sal_sock = sal_get_socket((int)(size_t)file->fnode->data);
+    sal_sock = sal_get_socket((int) file->data);
     if(!sal_sock)
     {
         return -1;
     }
 
-    sock = lwip_tryget_socket((int)(size_t)sal_sock->user_data);
+    sock = lwip_tryget_socket((int)sal_sock->user_data);
     if (sock != NULL)
     {
         rt_base_t level;
@@ -320,7 +320,7 @@ static const struct sal_proto_family lwip_inet_family =
     AF_INET6,
 #else
     AF_INET,
-#endif 
+#endif
     &lwip_socket_ops,
     &lwip_netdb_ops,
 };
@@ -329,7 +329,7 @@ static const struct sal_proto_family lwip_inet_family =
 int sal_lwip_netdev_set_pf_info(struct netdev *netdev)
 {
     RT_ASSERT(netdev);
-    
+
     netdev->sal_user_data = (void *) &lwip_inet_family;
     return 0;
 }

@@ -1,6 +1,6 @@
 /*
- * COPYRIGHT (C) 2018, Real-Thread Information Technology Ltd
- * 
+ * COPYRIGHT (C) 2011-2021, Real-Thread Information Technology Ltd
+ *
  * SPDX-License-Identifier: Apache-2.0
  *
  * Change Logs:
@@ -230,7 +230,7 @@ static void _bus_out_entry(void *param)
             /* kick the guest, hoping this could force it do the work */
             rt_vbus_tick(0, RT_VBUS_GUEST_VIRQ);
 
-            rt_thread_suspend_with_flag(rt_thread_self(), RT_UNINTERRUPTIBLE);
+            rt_thread_suspend(rt_thread_self());
             rt_schedule();
 
             RT_VBUS_OUT_RING->blocked = 0;
@@ -334,7 +334,7 @@ rt_err_t rt_vbus_post(rt_uint8_t id,
         /* We only touch the _chn_suspended_threads in thread, so lock the
          * scheduler is enough. */
         rt_enter_critical();
-        rt_thread_suspend_with_flag(thread, RT_UNINTERRUPTIBLE);
+        rt_thread_suspend(thread);
 
         rt_list_insert_after(&_chn_suspended_threads[id], &thread->tlist);
         if (timeout > 0)
@@ -899,8 +899,8 @@ int rt_vbus_request_chn(struct rt_vbus_request *req,
                         int timeout)
 {
     int i, chnr, err;
-	size_t plen = rt_strlen(req->name) + 2;
-	unsigned char *pbuf;
+    size_t plen = rt_strlen(req->name) + 2;
+    unsigned char *pbuf;
     rt_ubase_t lvl;
 
     lvl = rt_hw_interrupt_disable();
@@ -930,8 +930,8 @@ int rt_vbus_request_chn(struct rt_vbus_request *req,
         goto _waitforcmp;
     }
 
-	pbuf = rt_malloc(plen);
-	if (!pbuf)
+    pbuf = rt_malloc(plen);
+    if (!pbuf)
     {
         rt_hw_interrupt_enable(lvl);
         return -RT_ENOMEM;
@@ -944,7 +944,7 @@ int rt_vbus_request_chn(struct rt_vbus_request *req,
     rt_memcpy(pbuf+1, req->name, plen-1);
     vbus_verbose("%s --> remote\n", dump_cmd_pkt(pbuf, plen));
 
-	err = _chn0_post(pbuf, plen, RT_WAITING_FOREVER);
+    err = _chn0_post(pbuf, plen, RT_WAITING_FOREVER);
     rt_free(pbuf);
 
 _waitforcmp:
@@ -1308,7 +1308,7 @@ void rt_vbus_chm_wm_dump(void)
 
 #ifdef RT_USING_FINSH
 #include <finsh.h>
-FINSH_FUNCTION_EXPORT_ALIAS(rt_vbus_rb_dump,    vbrb, dump vbus ringbuffer status);
+FINSH_FUNCTION_EXPORT_ALIAS(rt_vbus_rb_dump,   vbrb, dump vbus ringbuffer status);
 FINSH_FUNCTION_EXPORT_ALIAS(rt_vbus_chn_dump,  vbchn, dump vbus channel status);
 FINSH_FUNCTION_EXPORT_ALIAS(rt_vbus_sess_dump, vbses, dump vbus session status);
 FINSH_FUNCTION_EXPORT_ALIAS(rt_vbus_que_dump,  vbque, dump vbus out queue status);

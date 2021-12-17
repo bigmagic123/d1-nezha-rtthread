@@ -1,4 +1,13 @@
 /*
+ * Copyright (c) 2006-2021, RT-Thread Development Team
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Change Logs:
+ *
+ */
+
+/*
  * 程序清单：唤醒线程
  *
  * 这个例子中将创建两个动态线程，低优先级线程将挂起自身，然后
@@ -18,7 +27,7 @@ static void thread1_entry(void* parameter)
 
     /* 挂起自身 */
     rt_kprintf("suspend thread self\n");
-    rt_thread_suspend_witch_flag(tid1, RT_UNINTERRUPTIBLE);
+    rt_thread_suspend(tid1);
     /* 主动执行线程调度 */
     rt_schedule();
 

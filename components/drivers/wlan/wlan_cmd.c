@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2018, RT-Thread Development Team
+ * Copyright (c) 2006-2021, RT-Thread Development Team
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -587,7 +587,7 @@ static int wifi_msh(int argc, char *argv[])
 }
 
 #if defined(RT_USING_FINSH)
-FINSH_FUNCTION_EXPORT_ALIAS(wifi_msh, __cmd_wifi, wifi command.);
+MSH_CMD_EXPORT_ALIAS(wifi_msh, wifi, wifi command);
 #endif
 
 #endif

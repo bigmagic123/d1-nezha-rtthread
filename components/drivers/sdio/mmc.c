@@ -121,6 +121,7 @@ static int mmc_get_ext_csd(struct rt_mmcsd_card *card, rt_uint8_t **new_ext_csd)
   struct rt_mmcsd_data data;
 
   *new_ext_csd = RT_NULL;
+
   if (GET_BITS(card->resp_csd, 122, 4) < 4)
      return 0;
 
@@ -220,7 +221,7 @@ static int mmc_switch(struct rt_mmcsd_card *card, rt_uint8_t set,
   cmd.cmd_code = SWITCH;
   cmd.arg = (MMC_SWITCH_MODE_WRITE_BYTE << 24) |
     (index << 16) | (value << 8) | set;
-  cmd.flags = RESP_R1B | CMD_AC;
+  cmd.flags = RESP_SPI_R1 | RESP_R1 | CMD_AC;
 
   err = mmcsd_send_cmd(host, &cmd, 3);
   if (err)
@@ -299,7 +300,7 @@ static int mmc_select_bus_width(struct rt_mmcsd_card *card, rt_uint8_t *ext_csd)
     MMCSD_BUS_WIDTH_1
   };
   struct rt_mmcsd_host *host = card->host;
-  unsigned idx, bus_width = 0;
+  unsigned idx, trys, bus_width = 0;
   int err = 0;
 
   if (GET_BITS(card->resp_csd, 122, 4) < 4)
@@ -333,15 +334,14 @@ static int mmc_select_bus_width(struct rt_mmcsd_card *card, rt_uint8_t *ext_csd)
                      ext_csd_bits[idx]);
     if (err)
       continue;
-    err = mmc_switch(card, EXT_CSD_CMD_SET_NORMAL,
-                     EXT_CSD_HS_TIMING,
-                     1);
 
-    if (err)
-      continue;
-    bus_width = bus_widths[idx];
-    mmcsd_set_bus_width(host, bus_width);
-    err = mmc_compare_ext_csds(card, ext_csd, bus_width);
+    for(trys = 0; trys < 5; trys++){
+        mmcsd_set_bus_width(host, bus_width);
+        mmcsd_delay_ms(10);
+        err = mmc_compare_ext_csds(card, ext_csd, bus_width);
+        if(!err)
+            break;
+    }
     if (!err) {
       err = bus_width;
       break;
@@ -521,10 +521,11 @@ static rt_int32_t mmcsd_mmc_init_card(struct rt_mmcsd_host *host,
     else
         max_data_rate = card->max_data_rate;
 
-    /*switch bus width and bus mode*/
+    mmcsd_set_clock(host, max_data_rate);
+
+    /*switch bus width*/
     mmc_select_bus_width(card, ext_csd);
 
-    mmcsd_set_clock(host, max_data_rate);
     host->card = card;
 
     rt_free(ext_csd);

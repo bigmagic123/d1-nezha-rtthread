@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2006-2018, RT-Thread Development Team
+ * Copyright (c) 2006-2021, RT-Thread Development Team
  *
  * SPDX-License-Identifier: Apache-2.0
  *
  * Change Logs:
  * Date           Author       Notes
- * 2018/06/26     Bernard      Fix the wait queue issue when wakeup a soon 
+ * 2018/06/26     Bernard      Fix the wait queue issue when wakeup a soon
  *                             to blocked thread.
  */
 
@@ -43,8 +43,6 @@ rt_inline void rt_wqueue_init(rt_wqueue_t *queue)
 void rt_wqueue_add(rt_wqueue_t *queue, struct rt_wqueue_node *node);
 void rt_wqueue_remove(struct rt_wqueue_node *node);
 int  rt_wqueue_wait(rt_wqueue_t *queue, int condition, int timeout);
-int  rt_wqueue_wait_killable(rt_wqueue_t *queue, int condition, int timeout);
-int  rt_wqueue_wait_interruptible(rt_wqueue_t *queue, int condition, int timeout);
 void rt_wqueue_wakeup(rt_wqueue_t *queue, void *key);
 
 #define DEFINE_WAIT_FUNC(name, function)                \

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2018, RT-Thread Development Team
+ * Copyright (c) 2006-2021, RT-Thread Development Team
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -241,7 +241,7 @@ int dfs_mount(const char   *device_name,
 
     for (ops = &filesystem_operation_table[0];
             ops < &filesystem_operation_table[DFS_FILESYSTEM_TYPES_MAX]; ops++)
-        if ((*ops != NULL) && (strncmp((*ops)->name, filesystemtype, strlen((*ops)->name)) == 0))
+        if ((*ops != NULL) && (strcmp((*ops)->name, filesystemtype) == 0))
             break;
 
     dfs_unlock();
@@ -273,7 +273,6 @@ int dfs_mount(const char   *device_name,
     {
         struct dfs_fd fd;
 
-        fd_init(&fd);
         if (dfs_file_open(&fd, fullpath, O_RDONLY | O_DIRECTORY) < 0)
         {
             rt_free(fullpath);
@@ -313,9 +312,6 @@ int dfs_mount(const char   *device_name,
     fs->path   = fullpath;
     fs->ops    = *ops;
     fs->dev_id = dev_id;
-    /* For UFS, record the real filesystem name */
-    fs->data = (void *) filesystemtype;
-
     /* release filesystem_table lock */
     dfs_unlock();
 
@@ -451,8 +447,7 @@ int dfs_mkfs(const char *fs_name, const char *device_name)
     for (index = 0; index < DFS_FILESYSTEM_TYPES_MAX; index ++)
     {
         if (filesystem_operation_table[index] != NULL &&
-            strncmp(filesystem_operation_table[index]->name, fs_name,
-                strlen(filesystem_operation_table[index]->name)) == 0)
+            strcmp(filesystem_operation_table[index]->name, fs_name) == 0)
             break;
     }
     dfs_unlock();
@@ -468,7 +463,7 @@ int dfs_mkfs(const char *fs_name, const char *device_name)
             return -1;
         }
 
-        return ops->mkfs(dev_id, fs_name);
+        return ops->mkfs(dev_id);
     }
 
     LOG_E("File system (%s) was not found.", fs_name);
@@ -495,7 +490,6 @@ int dfs_statfs(const char *path, struct statfs *buffer)
             return fs->ops->statfs(fs, buffer);
     }
 
-    rt_set_errno(-ENOSYS);
     return -1;
 }
 
@@ -528,16 +522,16 @@ INIT_ENV_EXPORT(dfs_mount_table);
 int dfs_mount_device(rt_device_t dev)
 {
   int index = 0;
-  
+
   if(dev == RT_NULL) {
     rt_kprintf("the device is NULL to be mounted.\n");
     return -RT_ERROR;
   }
-  
+
   while (1)
   {
     if (mount_table[index].path == NULL) break;
-    
+
     if(strcmp(mount_table[index].device_name, dev->parent.name) == 0) {
       if (dfs_mount(mount_table[index].device_name,
                     mount_table[index].path,
@@ -554,10 +548,10 @@ int dfs_mount_device(rt_device_t dev)
         return RT_EOK;
       }
     }
-    
+
     index ++;
   }
-  
+
   rt_kprintf("can't find device:%s to be mounted.\n", dev->parent.name);
   return -RT_ERROR;
 }
@@ -631,10 +625,7 @@ int df(const char *path)
     result = dfs_statfs(path ? path : NULL, &buffer);
     if (result != 0)
     {
-        if (rt_get_errno() == -ENOSYS)
-            rt_kprintf("The function is not implemented.\n");
-        else
-            rt_kprintf("statfs failed: errno=%d.\n", rt_get_errno());
+        rt_kprintf("dfs_statfs failed.\n");
         return -1;
     }
 

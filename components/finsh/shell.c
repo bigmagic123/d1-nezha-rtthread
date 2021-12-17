@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2018, RT-Thread Development Team
+ * Copyright (c) 2006-2021, RT-Thread Development Team
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -22,56 +22,59 @@
 #include <string.h>
 #include <stdio.h>
 
-#if defined(RT_USING_MSH) || defined(FINSH_USING_MSH)
+#ifdef RT_USING_FINSH
 
 #include "shell.h"
 #include "msh.h"
 
-#if defined(RT_USING_DFS)
+#ifdef DFS_USING_POSIX
 #include <dfs_posix.h>
-#endif /* RT_USING_DFS */
+#endif /* DFS_USING_POSIX */
 
 /* finsh thread */
 #ifndef RT_USING_HEAP
-static struct rt_thread finsh_thread;
-ALIGN(RT_ALIGN_SIZE)
-static char finsh_thread_stack[FINSH_THREAD_STACK_SIZE];
-struct finsh_shell _shell;
+    static struct rt_thread finsh_thread;
+    ALIGN(RT_ALIGN_SIZE)
+    static char finsh_thread_stack[FINSH_THREAD_STACK_SIZE];
+    struct finsh_shell _shell;
 #endif
 
 /* finsh symtab */
-struct finsh_syscall *_syscall_table_begin  = NULL;
-struct finsh_syscall *_syscall_table_end    = NULL;
+#ifdef FINSH_USING_SYMTAB
+    struct finsh_syscall *_syscall_table_begin  = NULL;
+    struct finsh_syscall *_syscall_table_end    = NULL;
+#endif
 
 struct finsh_shell *shell;
 static char *finsh_prompt_custom = RT_NULL;
 
 #if defined(_MSC_VER) || (defined(__GNUC__) && defined(__x86_64__))
-struct finsh_syscall* finsh_syscall_next(struct finsh_syscall* call)
+struct finsh_syscall *finsh_syscall_next(struct finsh_syscall *call)
 {
     unsigned int *ptr;
-    ptr = (unsigned int*) (call + 1);
-    while ((*ptr == 0) && ((unsigned int*)ptr < (unsigned int*) _syscall_table_end))
+    ptr = (unsigned int *)(call + 1);
+    while ((*ptr == 0) && ((unsigned int *)ptr < (unsigned int *) _syscall_table_end))
         ptr ++;
 
-    return (struct finsh_syscall*)ptr;
+    return (struct finsh_syscall *)ptr;
 }
+
 #endif /* defined(_MSC_VER) || (defined(__GNUC__) && defined(__x86_64__)) */
 
 #ifdef RT_USING_HEAP
-int finsh_set_prompt(const char * prompt)
+int finsh_set_prompt(const char *prompt)
 {
-    if(finsh_prompt_custom)
+    if (finsh_prompt_custom)
     {
         rt_free(finsh_prompt_custom);
         finsh_prompt_custom = RT_NULL;
     }
 
     /* strdup */
-    if(prompt)
+    if (prompt)
     {
-        finsh_prompt_custom = (char *)rt_malloc(strlen(prompt)+1);
-        if(finsh_prompt_custom)
+        finsh_prompt_custom = (char *)rt_malloc(strlen(prompt) + 1);
+        if (finsh_prompt_custom)
         {
             strcpy(finsh_prompt_custom, prompt);
         }
@@ -82,6 +85,7 @@ int finsh_set_prompt(const char * prompt)
 #endif /* RT_USING_HEAP */
 
 #define _MSH_PROMPT "msh "
+
 const char *finsh_get_prompt(void)
 {
     static char finsh_prompt[RT_CONSOLEBUF_SIZE + 1] = {0};
@@ -93,15 +97,14 @@ const char *finsh_get_prompt(void)
         return finsh_prompt;
     }
 
-    if(finsh_prompt_custom)
+    if (finsh_prompt_custom)
     {
-        strncpy(finsh_prompt, finsh_prompt_custom, sizeof(finsh_prompt)-1);
+        strncpy(finsh_prompt, finsh_prompt_custom, sizeof(finsh_prompt) - 1);
         return finsh_prompt;
     }
-
     strcpy(finsh_prompt, _MSH_PROMPT);
 
-#if defined(RT_USING_DFS) && defined(DFS_USING_WORKDIR)
+#if defined(DFS_USING_POSIX) && defined(DFS_USING_WORKDIR)
     /* get current working directory */
     getcwd(&finsh_prompt[rt_strlen(finsh_prompt)], RT_CONSOLEBUF_SIZE - rt_strlen(finsh_prompt));
 #endif
@@ -139,27 +142,42 @@ void finsh_set_prompt_mode(rt_uint32_t prompt_mode)
     shell->prompt_mode = prompt_mode;
 }
 
-static int finsh_getchar(void)
+int finsh_getchar(void)
 {
 #ifdef RT_USING_DEVICE
-#ifdef RT_USING_POSIX
-    return getchar();
-#else
     char ch = 0;
+#ifdef RT_USING_POSIX_DEVIO
+    if(read(STDIN_FILENO, &ch, 1) > 0)
+    {
+        return ch;
+    }
+    else
+    {
+        return -1; /* EOF */
+    }
+#else
+    rt_device_t device;
 
     RT_ASSERT(shell != RT_NULL);
-    while (rt_device_read(shell->device, -1, &ch, 1) != 1)
+
+    device = shell->device;
+    if (device == RT_NULL)
+    {
+        return -1; /* EOF */
+    }
+
+    while (rt_device_read(device, -1, &ch, 1) != 1)
         rt_sem_take(&shell->rx_sem, RT_WAITING_FOREVER);
 
-    return (int)ch;
-#endif
+    return ch;
+#endif /* RT_USING_POSIX_DEVIO */
 #else
     extern char rt_hw_console_getchar(void);
     return rt_hw_console_getchar();
-#endif
+#endif /* RT_USING_DEVICE */
 }
 
-#if !defined(RT_USING_POSIX) && defined(RT_USING_DEVICE)
+#if !defined(RT_USING_POSIX_DEVIO) && defined(RT_USING_DEVICE)
 static rt_err_t finsh_rx_ind(rt_device_t dev, rt_size_t size)
 {
     RT_ASSERT(shell != RT_NULL);
@@ -223,7 +241,7 @@ const char *finsh_get_device()
     RT_ASSERT(shell != RT_NULL);
     return shell->device->parent.name;
 }
-#endif
+#endif /* !defined(RT_USING_POSIX_DEVIO) && defined(RT_USING_DEVICE) */
 
 /**
  * @ingroup finsh
@@ -263,7 +281,8 @@ rt_uint32_t finsh_get_echo()
  * @return result, RT_EOK on OK, -RT_ERROR on the new password length is less than
  *  FINSH_PASSWORD_MIN or greater than FINSH_PASSWORD_MAX
  */
-rt_err_t finsh_set_password(const char *password) {
+rt_err_t finsh_set_password(const char *password)
+{
     rt_ubase_t level;
     rt_size_t pw_len = rt_strlen(password);
 
@@ -304,7 +323,7 @@ static void finsh_wait_auth(void)
             while (1)
             {
                 /* read one character from device */
-                ch = finsh_getchar();
+                ch = (int)finsh_getchar();
                 if (ch < 0)
                 {
                     continue;
@@ -424,7 +443,7 @@ void finsh_thread_entry(void *parameter)
     shell->echo_mode = 0;
 #endif
 
-#if !defined(RT_USING_POSIX) && defined(RT_USING_DEVICE)
+#if !defined(RT_USING_POSIX_DEVIO) && defined(RT_USING_DEVICE)
     /* set console device as shell device */
     if (shell->device == RT_NULL)
     {
@@ -434,7 +453,7 @@ void finsh_thread_entry(void *parameter)
             finsh_set_device(console->parent.name);
         }
     }
-#endif
+#endif /* !defined(RT_USING_POSIX_DEVIO) && defined(RT_USING_DEVICE) */
 
 #ifdef FINSH_USING_AUTH
     /* set the default password when the password isn't setting */
@@ -453,7 +472,7 @@ void finsh_thread_entry(void *parameter)
 
     while (1)
     {
-        ch = finsh_getchar();
+        ch = (int)finsh_getchar();
         if (ch < 0)
         {
             continue;
@@ -593,8 +612,7 @@ void finsh_thread_entry(void *parameter)
             }
             else
             {
-                if (shell->echo_mode)
-                    rt_kprintf("\b \b");
+                rt_kprintf("\b \b");
                 shell->line[shell->line_position] = 0;
             }
 
@@ -607,7 +625,6 @@ void finsh_thread_entry(void *parameter)
 #ifdef FINSH_USING_HISTORY
             shell_push_history(shell);
 #endif
-
             if (shell->echo_mode)
                 rt_kprintf("\n");
             msh_exec(shell->line, shell->line_position);
@@ -665,12 +682,12 @@ void finsh_system_function_init(const void *begin, const void *end)
 
 #if defined(__ICCARM__) || defined(__ICCRX__)               /* for IAR compiler */
 #ifdef FINSH_USING_SYMTAB
-#pragma section="FSymTab"
+    #pragma section="FSymTab"
 #endif
 #elif defined(__ADSPBLACKFIN__) /* for VisaulDSP++ Compiler*/
 #ifdef FINSH_USING_SYMTAB
-extern "asm" int __fsymtab_start;
-extern "asm" int __fsymtab_end;
+    extern "asm" int __fsymtab_start;
+    extern "asm" int __fsymtab_end;
 #endif
 #elif defined(_MSC_VER)
 #pragma section("FSymTab$a", read)
@@ -705,14 +722,14 @@ int finsh_system_init(void)
     rt_thread_t tid;
 
 #ifdef FINSH_USING_SYMTAB
-#if defined(__CC_ARM) || defined(__CLANG_ARM)          /* ARM C Compiler */
+#ifdef __ARMCC_VERSION  /* ARM C Compiler */
     extern const int FSymTab$$Base;
     extern const int FSymTab$$Limit;
     finsh_system_function_init(&FSymTab$$Base, &FSymTab$$Limit);
 #elif defined (__ICCARM__) || defined(__ICCRX__)      /* for IAR Compiler */
     finsh_system_function_init(__section_begin("FSymTab"),
                                __section_end("FSymTab"));
-#elif defined (__GNUC__) || defined(__TI_COMPILER_VERSION__)
+#elif defined (__GNUC__) || defined(__TI_COMPILER_VERSION__) || defined(__TASKING__)
     /* GNU GCC Compiler and TI CCS */
     extern const int __fsymtab_start;
     extern const int __fsymtab_end;
@@ -722,7 +739,7 @@ int finsh_system_init(void)
 #elif defined(_MSC_VER)
     unsigned int *ptr_begin, *ptr_end;
 
-    if(shell)
+    if (shell)
     {
         rt_kprintf("finsh shell already init.\n");
         return RT_EOK;
@@ -770,4 +787,5 @@ int finsh_system_init(void)
 }
 INIT_APP_EXPORT(finsh_system_init);
 
-#endif /* RT_USING_MSH */
+#endif /* RT_USING_FINSH */
+

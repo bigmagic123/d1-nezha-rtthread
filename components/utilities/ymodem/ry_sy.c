@@ -6,6 +6,7 @@
  * Change Logs:
  * Date           Author       Notes
  * 2019-12-09     Steven Liu   the first version
+ * 2021-04-14     Meco Man     Check the file path's legitimacy of 'sy' command
  */
 
 #include <rtthread.h>
@@ -15,6 +16,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#ifndef DFS_USING_POSIX
+#error "Please enable DFS_USING_POSIX"
+#endif
 
 struct custom_ctx
 {
@@ -218,6 +223,12 @@ static rt_err_t sy(uint8_t argc, char **argv)
     /* temporarily support 1 file*/
     const char *file_path;
     rt_device_t dev;
+
+    if (argc < 2)
+    {
+        rt_kprintf("invalid file path.\n");
+        return -RT_ERROR;
+    }
 
     if (argc > 2)
         dev = rt_device_find(argv[2]);

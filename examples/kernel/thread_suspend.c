@@ -1,4 +1,13 @@
 /*
+ * Copyright (c) 2006-2021, RT-Thread Development Team
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Change Logs:
+ *
+ */
+
+/*
  * 程序清单：挂起线程
  *
  * 这个例子中将创建两个动态线程，高优先级线程将在一定时刻后挂起低优先级线程。
@@ -28,7 +37,7 @@ static void thread2_entry(void* parameter)
     rt_thread_delay(10);
 
     /* 挂起线程1 */
-    rt_thread_suspend_witch_flag(tid1, RT_UNINTERRUPTIBLE);
+    rt_thread_suspend(tid1);
 
     /* 延时10个OS Tick */
     rt_thread_delay(10);

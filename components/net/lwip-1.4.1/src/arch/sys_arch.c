@@ -1,5 +1,5 @@
 /*
- * COPYRIGHT (C) 2006-2018, RT-Thread Development Team
+ * COPYRIGHT (C) 2006-2021, RT-Thread Development Team
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -32,6 +32,7 @@
  */
 
 #include <rtthread.h>
+#include <rthw.h>
 
 #include "lwip/sys.h"
 #include "lwip/opt.h"
@@ -194,9 +195,9 @@ int lwip_system_init(void)
         netifapi_netif_set_addr(netif_default, &ipaddr, &netmask, &gw);
     }
 #endif
-	rt_kprintf("lwIP-%d.%d.%d initialized!\n", LWIP_VERSION_MAJOR, LWIP_VERSION_MINOR, LWIP_VERSION_REVISION);
+    rt_kprintf("lwIP-%d.%d.%d initialized!\n", LWIP_VERSION_MAJOR, LWIP_VERSION_MINOR, LWIP_VERSION_REVISION);
 
-	return 0;
+    return 0;
 }
 INIT_PREV_EXPORT(lwip_system_init);
 
@@ -340,7 +341,7 @@ err_t sys_mutex_new(sys_mutex_t *mutex)
     rt_snprintf(tname, RT_NAME_MAX, "%s%d", SYS_LWIP_MUTEX_NAME, counter);
     counter ++;
 
-    tmpmutex = rt_mutex_create(tname, RT_IPC_FLAG_FIFO);
+    tmpmutex = rt_mutex_create(tname, RT_IPC_FLAG_PRIO);
     if (tmpmutex == RT_NULL)
         return ERR_MEM;
     else
@@ -617,7 +618,7 @@ u32_t sys_jiffies(void)
 
 u32_t sys_now(void)
 {
-	return rt_tick_get() * (1000 / RT_TICK_PER_SECOND);
+    return rt_tick_get_millisecond();
 }
 
 #ifdef RT_LWIP_PPP

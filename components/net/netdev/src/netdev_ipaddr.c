@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2018, RT-Thread Development Team
+ * Copyright (c) 2006-2021, RT-Thread Development Team
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -7,9 +7,8 @@
  * Date           Author       Notes
  * 2018-05-18     ChenYong     First version
  */
-
-#include <rtthread.h>
 #include <stdlib.h>
+#include <rtthread.h>
 #include <netdev_ipaddr.h>
 
 /* Here for now until needed in other places in lwIP */

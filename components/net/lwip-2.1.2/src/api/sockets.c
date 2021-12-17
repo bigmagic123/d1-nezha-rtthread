@@ -710,7 +710,7 @@ lwip_accept(int s, struct sockaddr *addr, socklen_t *addrlen)
     err = netconn_peer(newconn, &naddr, &port);
     if (err != ERR_OK) {
       LWIP_DEBUGF(SOCKETS_DEBUG, ("lwip_accept(%d): netconn_peer failed, err=%d\n", s, err));
-      netconn_delete(newconn);
+      //netconn_delete(newconn);
       free_socket(nsock, 1);
       sock_set_errno(sock, err_to_errno(err));
       done_socket(sock);
@@ -3905,7 +3905,7 @@ lwip_fcntl(int s, int cmd, int val)
     case F_SETFL:
       /* Bits corresponding to the file access mode and the file creation flags [..] that are set in arg shall be ignored */
       val &= ~(O_RDONLY | O_WRONLY | O_RDWR);
-      if ((val & O_NONBLOCK) == O_NONBLOCK) {
+      if ((val & ~O_NONBLOCK) == 0) {
         /* only O_NONBLOCK, all other bits are zero */
         netconn_set_nonblocking(sock->conn, val & O_NONBLOCK);
         ret = 0;
