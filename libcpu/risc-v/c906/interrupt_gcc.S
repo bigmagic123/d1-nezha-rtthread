@@ -161,10 +161,10 @@ syscall_exit:
 
 .global rt_hw_interrupt_enable
 rt_hw_interrupt_enable:
-    /* csrs mstatus, a0    restore to old csr */
+    csrs mstatus, a0    /* restore to old csr */
     jr ra
 
 .global rt_hw_interrupt_disable
 rt_hw_interrupt_disable:
-    /* csrrci a0, mstatus, 2    clear SIE */
+    csrrci a0, mstatus, 2  /*  clear SIE */
     jr ra

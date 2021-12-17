@@ -23,6 +23,5 @@ extern unsigned int __bss_end;
 #define RT_HW_PAGE_END ((void *)(((rt_size_t)RT_HW_PAGE_START) + 50 * 1024 * 1024))
 
 void rt_hw_board_init(void);
-void rt_init_user_mem(struct rt_thread *thread, const char *name, unsigned long *entry);
 
 #endif
