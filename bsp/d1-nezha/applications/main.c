@@ -18,11 +18,8 @@ int main(void)
 
     while (1)
     {
-        rt_kprintf("cur tick 1 is %d\n", rt_tick_get());
-        rt_thread_delay(1);
-        rt_kprintf("cur tick 2 is %d\n", rt_tick_get());
-        rt_thread_delay(5);
-        rt_kprintf("cur tick  3 is %d\n", rt_tick_get());
+        rt_kprintf("cur tick is %d\n", rt_tick_get());
+        rt_thread_mdelay(1000);
     }
     return 0;
 }
