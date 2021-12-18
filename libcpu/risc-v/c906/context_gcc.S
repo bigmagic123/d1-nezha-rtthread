@@ -18,8 +18,8 @@
 rt_hw_context_switch_to:
     LOAD sp, (a0)
 
-    la s0, rt_current_thread
-    LOAD s1, (s0)
+    //la s0, rt_current_thread
+    //LOAD s1, (s0)
 
     RESTORE_ALL
     mret
@@ -32,8 +32,12 @@ rt_hw_context_switch_to:
  */
     .globl rt_hw_context_switch
 rt_hw_context_switch:
+    CLOSE_INTERRUPT
     mv t2, sp
-    li t0, 0x120//set SPIE and SPP = 1
+    //csrrw sp, mscratch, sp
+    //STORE sp, (a0)
+    //mv sp, a0
+    li t0, 0x1880//set SPIE and SPP = 1
     csrs mstatus, t0//if enter here,caller must be in system thread
     csrw mepc, ra//return address
     //saved from thread context
@@ -46,13 +50,9 @@ rt_hw_context_switch:
     //restore to thread context
     LOAD sp, (a1)
 
-    la s0, rt_current_thread
-    LOAD s1, (s0)
-
-    #ifdef RT_USING_USERSPACE
-        mv a0, s1
-        jal lwp_mmu_switch
-    #endif
+    //la s0, rt_current_thread
+    //LOAD s1, (s0)
 
     RESTORE_ALL
+    OPEN_INTERRUPT
     mret

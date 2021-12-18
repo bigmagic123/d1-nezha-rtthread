@@ -22,6 +22,8 @@
   .extern get_current_thread_kernel_stack_top
 trap_entry:
     //backup sp
+    //csrrci a0, mstatus, 8
+    CLOSE_INTERRUPT
     csrrw sp, mscratch, sp
     //load interrupt stack
     la sp, __stack_cpu0
@@ -38,63 +40,16 @@ trap_entry:
     /* mcause, mtval, mepc, sp */
     call  handle_trap
 
-    /* need to switch new thread */
-    la    s0, rt_thread_switch_interrupt_flag
-    lw    s2, 0(s0)
-    beqz  s2, spurious_interrupt
-    sw    zero, 0(s0)
-
-.global rt_hw_context_switch_interrupt_do
-rt_hw_context_switch_interrupt_do:
-
-//swap to thread kernel stack
-    csrr t0, sstatus
-    andi t0, t0, 0x100
-    beqz t0, __restore_sp_from_tcb_interrupt
-
-__restore_sp_from_sscratch_interrupt:
-    csrr t0, sscratch
-    j __move_stack_context_interrupt
-
-__restore_sp_from_tcb_interrupt:
-    la    s0, rt_interrupt_from_thread
-    LOAD  a0, 0(s0)
-    /*jal rt_thread_sp_to_thread */
-    /*jal get_thread_kernel_stack_top*/
-    mv t0, a0
-
-__move_stack_context_interrupt:
-    mv t1, sp//src
-    mv sp, t0//switch stack
-    addi sp, sp, -CTX_REG_NR * REGBYTES
-    //copy context
-    li s0, CTX_REG_NR//cnt
-    mv t2, sp//dst
-
-copy_context_loop_interrupt:
-    LOAD t0, 0(t1)
-    STORE t0, 0(t2)
-    addi s0, s0, -1
-    addi t1, t1, 8
-    addi t2, t2, 8
-    bnez s0, copy_context_loop_interrupt
-
-    la    s0, rt_interrupt_from_thread
-    LOAD  s1, 0(s0)
-    STORE sp, 0(s1)
-
-    la    s0, rt_interrupt_to_thread
-    LOAD  s1, 0(s0)
-    LOAD  sp, 0(s1)
-
-    #ifdef RT_USING_USERSPACE
-        mv a0, s1
-        jal rt_thread_sp_to_thread
-        jal lwp_mmu_switch
-    #endif
-
-spurious_interrupt:
     RESTORE_ALL
+
+    //csrr t0, mscratch
+    //csrw mscratch, sp 
+    //STORE t0, 32 * REGBYTES(sp)
+
+    //csrrw	sp,mscratch,sp
+    //csrrci	sp,mscratch,0
+    csrr sp,mscratch
+    OPEN_INTERRUPT
     mret
 
 syscall_entry:
@@ -161,5 +116,5 @@ rt_hw_interrupt_enable:
 
 .global rt_hw_interrupt_disable
 rt_hw_interrupt_disable:
-    csrrci a0, mstatus, 2  /*  clear SIE */
+    csrrci a0, mstatus, 8  /*  clear SIE */
     jr ra

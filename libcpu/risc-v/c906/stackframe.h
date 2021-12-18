@@ -59,8 +59,8 @@
 #endif /* ENABLE_FPU */
 
     /* save general registers */
-    addi sp, sp, -CTX_GENERAL_REG_NR * REGBYTES
-    STORE x1,   1 * REGBYTES(sp)
+    addi  sp,   sp, -CTX_GENERAL_REG_NR * REGBYTES //save 33 reg
+    STORE x1,   1 * REGBYTES(sp)                //x1 ra
 
     csrr  x1, mstatus
     STORE x1,   2 * REGBYTES(sp)
@@ -255,11 +255,11 @@
 .endm
 
 .macro OPEN_INTERRUPT
-    csrsi mstatus, 2
+    csrsi mstatus, 8
 .endm
 
 .macro CLOSE_INTERRUPT
-    csrci mstatus, 2
+    csrci mstatus, 8
 .endm
 
 #endif

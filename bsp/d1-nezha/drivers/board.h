@@ -17,10 +17,10 @@
 extern unsigned int __bss_start;
 extern unsigned int __bss_end;
 
-#define RT_HW_HEAP_BEGIN    ((void *)&__bss_end)
-#define RT_HW_HEAP_END      ((void *)(((rt_size_t)RT_HW_HEAP_BEGIN) + 50 * 1024 * 1024))
-#define RT_HW_PAGE_START RT_HW_HEAP_END
-#define RT_HW_PAGE_END ((void *)(((rt_size_t)RT_HW_PAGE_START) + 50 * 1024 * 1024))
+#define RT_HW_HEAP_BEGIN     ((void *)&__bss_end)
+#define RT_HW_HEAP_END       ((void *)(((rt_size_t)RT_HW_HEAP_BEGIN) + 50 * 1024 * 1024))
+#define RT_HW_PAGE_START     RT_HW_HEAP_END
+#define RT_HW_PAGE_END       ((void *)(((rt_size_t)RT_HW_PAGE_START) + 50 * 1024 * 1024))
 
 void rt_hw_board_init(void);
 

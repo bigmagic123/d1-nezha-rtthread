@@ -40,7 +40,7 @@ void dump_regs(struct rt_hw_stack_frame *regs)
     rt_kprintf("Function Registers:\n");
     rt_kprintf("\tra(x1) = 0x%p(",regs->ra);
     rt_kprintf(")\n");
-    rt_kprintf("\tuser_sp(x2) = 0x%p(",regs->user_sp_exc_stack);
+   // rt_kprintf("\tuser_sp(x2) = 0x%p(",regs->user_sp_exc_stack);
     rt_kprintf(")\n");
     rt_kprintf("\tgp(x3) = 0x%p(",regs->gp);
     rt_kprintf(")\n");
@@ -207,7 +207,7 @@ void handle_trap(rt_size_t mcause,rt_size_t mtval,rt_size_t mepc,struct rt_hw_st
 {
     rt_size_t id = __MASKVALUE(mcause,__MASK(63UL));
     const char *msg;
-
+    //rt_kprintf("handle_trap\n");
     /* supervisor external interrupt */
     if ((MCAUSE_INTERRUPT & mcause) && SCAUSE_S_EXTERNAL_INTR == (mcause & 0xff))
     {
@@ -218,10 +218,7 @@ void handle_trap(rt_size_t mcause,rt_size_t mtval,rt_size_t mepc,struct rt_hw_st
     }
     else if ((MCAUSE_INTERRUPT | MCAUSE_M_TIMER_INTR) == mcause)
     {
-        /* supervisor timer */
-        rt_interrupt_enter();
         tick_isr();
-        rt_interrupt_leave();
         return;
     }
     else if (MCAUSE_INTERRUPT & mcause)

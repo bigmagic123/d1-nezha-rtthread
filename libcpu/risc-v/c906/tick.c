@@ -30,7 +30,8 @@ static uint64_t get_ticks()
 
 int tick_isr(void)
 {
-    clint_timer_init();
+    //clint_timer_init();
+    clint_timer_cmp_set_val(100);
     rt_tick_increase();
     return 0;
 }
