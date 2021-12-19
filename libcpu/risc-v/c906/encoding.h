@@ -121,6 +121,7 @@
 #define SCAUSE_S_EXTERNAL_INTR  9
 
 #define MCAUSE_M_TIMER_INTR     7
+#define MCAUSE_M_EXTERNAL_INTR  11
 
 #define PRV_U 0
 #define PRV_S 1

@@ -17,50 +17,89 @@
 #include "rt_interrupt.h"
 #include "io.h"
 #include "encoding.h"
+#include "common.h"
 
-static void *c906_plic_regs = RT_NULL;
-
-struct plic_handler
+//priority 0 is invaild, 1 is lowset priority 
+void c906_plic_priority_set(rt_uint32_t irq_num, rt_uint32_t priority)
 {
-    rt_bool_t present;
-    void *hart_base;
-    void *enable_base;
-};
+    write32(C906_PLIC_PHY_ADDR + PLIC_PRIO_REG(irq_num), priority);
+}
 
-rt_inline void plic_toggle(struct plic_handler *handler, int hwirq, int enable);
-struct plic_handler c906_plic_handlers[C906_NR_CPUS];
-
-rt_inline void plic_irq_toggle(int hwirq, int enable)
+int c906_plic_priority_get(rt_uint32_t irq_num)
 {
-    int cpu = 0;
+    return read32(C906_PLIC_PHY_ADDR + PLIC_PRIO_REG(irq_num));
+}
 
-    /* set priority of interrupt, interrupt 0 is zero. */
-    writel(enable, c906_plic_regs + PRIORITY_BASE + hwirq * PRIORITY_PER_ID);
-    struct plic_handler *handler = &c906_plic_handlers[cpu];
+int c906_plic_pending_get(rt_uint32_t irq_num)
+{
+    int pending_reg_cnt = irq_num / 32;
+    int num = irq_num % 32;
 
-    if (handler->present)
-    {
-        plic_toggle(handler, hwirq, enable);
-    }
+    return (read32(C906_PLIC_PHY_ADDR + PLIC_IP_REG(pending_reg_cnt)) & (1 << num));
+}
+
+void c906_plic_pending_set(rt_uint32_t irq_num)
+{
+    int pending_reg_cnt = irq_num / 32;
+    int num = irq_num % 32;
+
+    write32((C906_PLIC_PHY_ADDR + PLIC_IP_REG(pending_reg_cnt)), (1 << num));
+}
+
+void c906_plic_mmode_enable(rt_uint32_t irq_num)
+{
+    int enable_reg_cnt = irq_num / 32;
+    int num = irq_num % 32;
+
+    c906_plic_priority_set(irq_num, 1);
+
+    int temp = read32(C906_PLIC_PHY_ADDR + PLIC_MIE_REG(enable_reg_cnt));
+    int write_val = temp | (1 << num);
+    write32(C906_PLIC_PHY_ADDR + PLIC_MIE_REG(enable_reg_cnt), write_val);
+}
+
+//disable
+void c906_plic_mmode_disable(rt_uint32_t irq_num)
+{
+    int enable_reg_cnt = irq_num / 32;
+    int num = irq_num % 32;
+
+    int temp = read32(C906_PLIC_PHY_ADDR + PLIC_MIE_REG(enable_reg_cnt));
+    int write_val = temp & (~(1 << num));
+    write32(C906_PLIC_PHY_ADDR + PLIC_MIE_REG(enable_reg_cnt), write_val);
+}
+// 0 only Machine  1 Machine and User
+void c906_plic_ctrl(int ctrl)
+{
+    write32(C906_PLIC_PHY_ADDR + PLIC_CTRL_REG, ctrl);
+}
+
+//th >= 0
+void c906_plic_mmode_threshold(int th)
+{
+    write32(C906_PLIC_PHY_ADDR + PLIC_MTH_REG, th);
+}
+
+int c906_plic_mmode_threshold_get(void)
+{
+    return read32(C906_PLIC_PHY_ADDR + PLIC_MTH_REG);
+}
+
+int c906_plic_mmode_mclaim_get(void)
+{
+    return read32(C906_PLIC_PHY_ADDR + PLIC_MCLAIM_REG);
+}
+
+void c906_plic_mmode_mclaim_complete(int id)
+{
+    write32(C906_PLIC_PHY_ADDR + PLIC_MCLAIM_REG, id);
 }
 
 void plic_complete(int irqno)
 {
-    int cpu = 0;
-    struct plic_handler *handler = &c906_plic_handlers[cpu];
-
-    writel(irqno, handler->hart_base + CONTEXT_CLAIM);
+    c906_plic_mmode_mclaim_complete(irqno);
 }
 
-void plic_disable_irq(int irqno)
-{
-    plic_irq_toggle(irqno, 0);
-}
-
-void plic_enable_irq(int irqno)
-{
-    plic_irq_toggle(irqno, 1);
-}
 
 /*
  * Handling an interrupt is a two-step process: first you claim the interrupt
@@ -70,21 +109,10 @@ void plic_enable_irq(int irqno)
  */
 void plic_handle_irq(void)
 {
-    int cpu = 0;
     unsigned int irq;
 
-    struct plic_handler *handler = &c906_plic_handlers[cpu];
-    void *claim = handler->hart_base + CONTEXT_CLAIM;
-
-    if (c906_plic_regs == RT_NULL || !handler->present)
-    {
-        LOG_E("plic state not initialized.");
-        return;
-    }
-
-    clear_csr(sie, SIE_SEIE);
-
-    while ((irq = readl(claim)))
+    clear_csr(mie, MIP_MEIP);
+    while ((irq = c906_plic_mmode_mclaim_get()))
     {
         /* ID0 is diabled permantually from spec. */
         if (irq == 0)
@@ -96,75 +124,5 @@ void plic_handle_irq(void)
             generic_handle_irq(irq);
         }
     }
-    set_csr(sie, SIE_SEIE);
-}
-
-rt_inline void plic_toggle(struct plic_handler *handler, int hwirq, int enable)
-{
-    uint32_t  *reg = handler->enable_base + (hwirq / 32) * sizeof(uint32_t);
-    uint32_t hwirq_mask = 1 << (hwirq % 32);
-
-    if (enable)
-    {
-        writel(readl(reg) | hwirq_mask, reg);
-    }
-    else
-    {
-        writel(readl(reg) & ~hwirq_mask, reg);
-    }
-}
-
-void plic_init(void)
-{
-    int nr_irqs;
-    int nr_context;
-    int i;
-    unsigned long hwirq;
-    int cpu = 0;
-
-    if (c906_plic_regs)
-    {
-        return;
-    }
-
-    nr_context = C906_NR_CONTEXT;
-
-    c906_plic_regs = (void *)C906_PLIC_PHY_ADDR;
-    nr_irqs = C906_PLIC_NR_EXT_IRQS;
-
-    for (i = 0; i < nr_context; i ++)
-    {
-        struct plic_handler *handler;
-        uint32_t threshold = 0;
-
-        cpu = 0;
-
-        /* skip contexts other than supervisor external interrupt */
-        if (i == 0)
-        {
-            continue;
-        }
-
-        // we always use CPU0 M-mode target register.
-        handler = &c906_plic_handlers[cpu];
-        if (handler->present)
-        {
-            threshold  = 0xffffffff;
-            goto done;
-        }
-
-        handler->present = RT_TRUE;
-        handler->hart_base = c906_plic_regs + CONTEXT_BASE + i * CONTEXT_PER_HART;
-        handler->enable_base = c906_plic_regs + ENABLE_BASE + i * ENABLE_PER_HART;
-done:
-        /* priority must be > threshold to trigger an interrupt */
-        writel(threshold, handler->hart_base + CONTEXT_THRESHOLD);
-        for (hwirq = 1; hwirq <= nr_irqs; hwirq++)
-        {
-            plic_toggle(handler, hwirq, 0);
-        }
-    }
-
-    /* Enable supervisor external interrupts. */
     set_csr(mie, MIP_MEIP);
 }

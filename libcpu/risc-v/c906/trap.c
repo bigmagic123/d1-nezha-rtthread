@@ -207,13 +207,11 @@ void handle_trap(rt_size_t mcause,rt_size_t mtval,rt_size_t mepc,struct rt_hw_st
 {
     rt_size_t id = __MASKVALUE(mcause,__MASK(63UL));
     const char *msg;
-    //rt_kprintf("handle_trap\n");
+
     /* supervisor external interrupt */
-    if ((MCAUSE_INTERRUPT & mcause) && SCAUSE_S_EXTERNAL_INTR == (mcause & 0xff))
+    if ((MCAUSE_INTERRUPT & mcause) && MCAUSE_M_EXTERNAL_INTR == (mcause & 0xff))
     {
-        rt_interrupt_enter();
         plic_handle_irq();
-        rt_interrupt_leave();
         return;
     }
     else if ((MCAUSE_INTERRUPT | MCAUSE_M_TIMER_INTR) == mcause)

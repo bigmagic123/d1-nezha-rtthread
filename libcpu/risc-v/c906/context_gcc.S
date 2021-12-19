@@ -32,18 +32,11 @@ rt_hw_context_switch_to:
  */
     .globl rt_hw_context_switch
 rt_hw_context_switch:
-    CLOSE_INTERRUPT
-    mv t2, sp
-    //csrrw sp, mscratch, sp
-    //STORE sp, (a0)
-    //mv sp, a0
     li t0, 0x1880//set SPIE and SPP = 1
     csrs mstatus, t0//if enter here,caller must be in system thread
     csrw mepc, ra//return address
     //saved from thread context
     SAVE_ALL
-
-    STORE t2, 32 * REGBYTES(sp)//save user_sp
 
     STORE sp, (a0)
 
@@ -54,5 +47,4 @@ rt_hw_context_switch:
     //LOAD s1, (s0)
 
     RESTORE_ALL
-    OPEN_INTERRUPT
     mret

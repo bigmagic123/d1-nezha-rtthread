@@ -14,12 +14,7 @@
 
 int main(void)
 {
-    printf("Hello RISC-V\n");
+    printf("Hello RISC-V!\n");
 
-    while (1)
-    {
-        rt_kprintf("cur tick is %d\n", rt_tick_get());
-        rt_thread_mdelay(1000);
-    }
     return 0;
 }

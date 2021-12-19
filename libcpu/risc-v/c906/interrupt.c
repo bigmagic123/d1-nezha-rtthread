@@ -31,8 +31,6 @@ static void rt_hw_interrupt_handler(int vector, void *param)
  */
 void rt_hw_interrupt_init(void)
 {
-    /* init interrupt controller */
-    plic_init();
 
     rt_int32_t idx;
 
@@ -59,7 +57,7 @@ void rt_hw_interrupt_mask(int vector)
     {
         return;
     }
-    plic_disable_irq(vector);
+    c906_plic_mmode_disable(vector);
 }
 
 /**
@@ -73,7 +71,7 @@ void rt_hw_interrupt_umask(int vector)
     {
         return;
     }
-    plic_enable_irq(vector);
+    c906_plic_mmode_enable(vector);
 }
 
 /**

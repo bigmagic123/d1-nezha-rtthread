@@ -97,8 +97,6 @@
     STORE x29, 29 * REGBYTES(sp)
     STORE x30, 30 * REGBYTES(sp)
     STORE x31, 31 * REGBYTES(sp)
-    csrr t0, mscratch
-    STORE t0, 32 * REGBYTES(sp)
 
 #ifdef ENABLE_FPU
     /* backup sp and adjust sp to save float registers */
@@ -243,8 +241,7 @@
     LOAD x30, 30 * REGBYTES(sp)
     LOAD x31, 31 * REGBYTES(sp)
 
-    /* restore user sp */
-    LOAD sp, 32 * REGBYTES(sp)
+    addi  sp,   sp, CTX_GENERAL_REG_NR * REGBYTES
 .endm
 
 .macro RESTORE_SYS_GP

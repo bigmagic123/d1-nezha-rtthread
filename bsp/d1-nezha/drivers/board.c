@@ -26,8 +26,6 @@
 void rt_hw_board_init(void)
 {
     sys_clock_init();
-    sys_uart0_init();
-
     rt_hw_interrupt_init();
     /* initalize interrupt */
     rt_hw_uart_init();

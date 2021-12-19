@@ -35,7 +35,7 @@ void clint_timer_init()
     clear_csr(mie, MIP_MTIP | MIP_MSIP);
     write32(CLINT + 0x4000, tick_l);
     write32(CLINT + 0x4004, tick_h);
-    set_csr(mie,  MIP_MTIP); //set m-mode sip
+    set_csr(mie,  MIP_MTIP | MIP_MEIP); //set m-mode sip
 }
 
 #define TIMER_FRQ (24000000)

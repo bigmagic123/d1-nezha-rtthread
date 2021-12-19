@@ -8,6 +8,12 @@
 #ifndef __DRV_UART_H__
 #define __DRV_UART_H__
 
+#define PLIC_UART0_NUM  (18)
+#define PLIC_UART1_NUM  (19)
+#define PLIC_UART2_NUM  (20)
+#define PLIC_UART3_NUM  (21)
+#define PLIC_UART4_NUM  (22)
+#define PLIC_UART5_NUM  (23)
 //D1 debug uart use GPIOB8(TX0) and GPIOB9(RX0)
 #define UART_BASE   (0X02500000)
 #define UART1_BASE  (0X02500400)
@@ -62,8 +68,6 @@
 #define UART_LSR_DR          0x01    /* Receiver data ready */
 #define UART_LSR_BRK_ERROR_BITS    0x1E    /* BI, FE, PE, OE bits */
 
-void rt_hw_uart_start_rx_thread();
 int rt_hw_uart_init(void);
-void drv_uart_puts(char *str); // for syscall
 
 #endif /* __DRV_UART_H__ */
