@@ -46,6 +46,13 @@ xfel.exe write 0x40000000 rtthread.bin
 xfel.exe exec 0x40000000
 ```
 
+对于D1s(f133)，其DDR2对应的命令如下：
+
+```
+xfel.exe ddr ddr2
+xfel.exe write 0x40000000 rtthread.bin
+xfel.exe exec 0x40000000
+```
 ## 程序运行与测试
 
 正常情况下，可以看到串口打印如下的信息:
