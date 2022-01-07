@@ -51,6 +51,8 @@ https://www.rt-thread.org/page/download.html
 
 后面的路径根据自己的gcc路径进行修改。
 
+进入`d1-nezha-rtthread\bsp\d1-nezha`路径
+
 输入
 
 ```
@@ -58,7 +60,7 @@ scons -c
 scons
 ```
 
-就能够正常编译了
+就能够正常编译了。
 
 
 ## 固件下载
