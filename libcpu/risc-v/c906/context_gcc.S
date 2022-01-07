@@ -32,7 +32,7 @@ rt_hw_context_switch_to:
  */
     .globl rt_hw_context_switch
 rt_hw_context_switch:
-    li t0, 0x1880//set SPIE and SPP = 1
+    li t0, (0x7880 | 0x00800000)//set SPIE and SPP = 1
     csrs mstatus, t0//if enter here,caller must be in system thread
     csrw mepc, ra//return address
     //saved from thread context
