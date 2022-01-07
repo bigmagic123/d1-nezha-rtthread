@@ -247,10 +247,44 @@ void test_vector_mul(void)
     rt_kprintf("normal mul time is %d ms\n", rt_tick_get() - tick_start);
 }
 
+void test_memcpy(void)
+{
+    int try = 100;
+    void *dst = rt_malloc(1024*1024);//1M
+    void *src = rt_malloc(1024*1024);
+    rt_memset(src, 5, 1024*1024);
+    
+    rt_kprintf("memcpy ok!\n");
+    //rt_memcpy
+    rt_tick_t tick_start = rt_tick_get();
+    while(try--)
+    {
+        rt_memcpy(dst, src, 1024*1024);
+    }
+    rt_kprintf("rt-thread memcpy time is %d ms\n", rt_tick_get() - tick_start);
+
+    try = 100;
+    tick_start = rt_tick_get();
+    while(try--)
+    {
+        memcpy(dst, src, 1024*1024);
+    }
+    rt_kprintf("newlib memcpy time is %d ms\n", rt_tick_get() - tick_start);
+
+    try = 100;
+    tick_start = rt_tick_get();
+    while(try--)
+    {
+        csi_c906_memcpy(dst, src, 1024*1024);
+    }
+    rt_kprintf("vector memcpy time is %d ms\n", rt_tick_get() - tick_start);
+}
+
 int vector_init(void)
 {
     test_vector_add();
     test_vector_mul();
+    test_memcpy();
     test_v();
     return 0;
 }
