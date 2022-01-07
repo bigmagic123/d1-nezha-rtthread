@@ -17,9 +17,15 @@ https://my.oschina.net/u/4239621/blog/5368281
 提取码：wrsw 
 ```
 
+在Linux上编译环境可以采用`newlib.tar.gz`。
+
+关于window工具链，需要下载`riscv64-elf-mingw-20210618.tar.gz`。
+
+下载完成后解压，到指定的目录即可。
+
 ## 配置RT-Thread的编译
 
-只需要修改bsp/d1-nezha下面的rtconfig.py文件即可
+在Linux环境中只需要修改bsp/d1-nezha下面的rtconfig.py文件即可
 
 ```
 if  CROSS_TOOL == 'gcc':
@@ -28,6 +34,31 @@ if  CROSS_TOOL == 'gcc':
 ```
 
 将`EXEC_PATH`替换成自己的编译工具链即可。
+
+
+
+在windows环境中，可以下载env工具
+
+```
+https://www.rt-thread.org/page/download.html
+```
+
+下载env工具后，设置gcc路径。
+
+```
+ set RTT_EXEC_PATH=C:\work\work\d1\riscv64-elf-mingw\bin
+```
+
+后面的路径根据自己的gcc路径进行修改。
+
+输入
+
+```
+scons -c
+scons
+```
+
+就能够正常编译了
 
 
 ## 固件下载
