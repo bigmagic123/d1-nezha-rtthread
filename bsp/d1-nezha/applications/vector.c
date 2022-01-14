@@ -288,4 +288,4 @@ int vector_init(void)
     test_v();
     return 0;
 }
-INIT_APP_EXPORT(vector_init);
+//INIT_APP_EXPORT(vector_init);
