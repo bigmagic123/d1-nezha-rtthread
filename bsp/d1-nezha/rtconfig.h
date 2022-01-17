@@ -99,6 +99,7 @@
 #define RT_SERIAL_USING_DMA
 #define RT_SERIAL_RB_BUFSZ 64
 #define RT_USING_PIN
+#define RT_USING_WDT
 
 /* Using USB */
 
@@ -164,11 +165,18 @@
 
 /* multimedia packages */
 
+/* LVGL: powerful and easy-to-use embedded GUI library */
+
+
+/* u8g2: a monochrome graphic library */
+
 
 /* tools packages */
 
 
 /* system packages */
+
+/* acceleration: Assembly language or algorithmic acceleration packages */
 
 
 /* Micrium: Micrium software products porting for RT-Thread */
@@ -181,7 +189,6 @@
 
 
 /* miscellaneous packages */
-
 
 /* samples: kernel and components samples */
 
