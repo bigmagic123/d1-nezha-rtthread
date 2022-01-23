@@ -1,8 +1,8 @@
 #ifndef F133_LCD_RGB_H__
 #define F133_LCD_RGB_H__
 
-#define LCD_DE_BASE_ADDR     (0x05000000)
-#define LCD_TCON_BASE_ADDR   (0x05461000)
+#define LCD_DE_BASE_ADDR     (0x0000000005000000L)
+#define LCD_TCON_BASE_ADDR   (0x0000000005461000L)
 
 #define LCD_WIDTH             (800)
 #define LCD_HEIGHT            (480)
