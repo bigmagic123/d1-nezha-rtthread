@@ -265,5 +265,89 @@ void lcd_show()
     f133_de_enable();
 }
 
+rt_err_t f133_fb_open(rt_device_t dev, rt_uint16_t oflag)
+{
+    return RT_EOK;
+}
 
-INIT_DEVICE_EXPORT(lcd_gpio_config);
+rt_err_t f133_fb_close(rt_device_t dev)
+{
+    return RT_EOK;
+}
+
+rt_size_t f133_fb_read(rt_device_t dev, rt_off_t pos, void *buf, rt_size_t size)
+{
+    return 0;
+}
+
+rt_size_t f133_fb_write(rt_device_t dev, rt_off_t pos, const void *buffer, rt_size_t size)
+{
+    return size;
+}
+
+rt_err_t f133_fb_control(rt_device_t dev, int cmd, void *args)
+{
+    switch (cmd)
+    {
+    case RTGRAPHIC_CTRL_RECT_UPDATE:
+        {
+            struct rt_device_rect_info *info = (struct rt_device_rect_info*)args;
+            info = info;
+            lcd_show();
+        }
+        break;
+
+    case RTGRAPHIC_CTRL_GET_INFO:
+        {
+           struct rt_device_graphic_info* info = (struct rt_device_graphic_info*)args;
+
+            RT_ASSERT(info != RT_NULL);
+            info->pixel_format  = RTGRAPHIC_PIXEL_FORMAT_RGB888;
+            info->bits_per_pixel= 32;
+            info->width         = 800;
+            info->height        = 480;
+            info->framebuffer   = &lcd_fb[0];
+        }
+        break;
+    }
+    return RT_EOK;
+}
+
+#ifdef RT_USING_DEVICE_OPS
+const static struct rt_device_ops f133_fb_ops =
+{
+    RT_NULL,
+    f133_fb_open,
+    f133_fb_close,
+    f133_fb_read,
+    f133_fb_write,
+    f133_fb_control,
+};
+#endif
+
+int f133_fb_device_init(void)
+{
+    struct rt_device *device;
+    lcd_gpio_config();
+
+    device = rt_malloc(sizeof(struct rt_device));
+
+    /* set device type */
+    device->type = RT_Device_Class_Graphic;
+    /* initialize device interface */
+#ifdef RT_USING_DEVICE_OPS
+    device->ops = &f133_fb_ops;
+#else
+    device->init = RT_NULL;
+    device->open = f133_fb_open;
+    device->close = f133_fb_close;
+    device->read = f133_fb_read;
+    device->write = f133_fb_write;
+    device->control = f133_fb_control;
+#endif
+
+    /* register to device manager */
+    rt_device_register(device, "lcd", RT_DEVICE_FLAG_RDWR);
+
+}
+INIT_DEVICE_EXPORT(f133_fb_device_init);
