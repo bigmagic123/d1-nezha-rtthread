@@ -14,6 +14,21 @@
 // PF0 - PF6
 // PG0 - PG15
 
+void d1_set_gpio_pull(uint32_t gpio_port, uint32_t gpio_pin, uint16_t pull)
+{
+    uint32_t pin_level = 0;
+    uint32_t gpio_base_addr = 0;
+    uint32_t val = 0;
+    pin_level = gpio_pin / 16;
+    gpio_base_addr = gpio_port + pin_level * 0x04 + 0xE4;
+    val = read32(gpio_base_addr);
+
+    val &= ~(0x3 << ((gpio_pin & 0xf) << 1));
+    val |= ((pull & 0x3) << ((gpio_pin & 0x3) << 1));
+
+    write32(gpio_base_addr, val);
+}
+
 void d1_set_gpio_mode(uint32_t gpio_port, uint32_t gpio_pin, uint16_t mode)
 {
     uint32_t pin_level = 0;

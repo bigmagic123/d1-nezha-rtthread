@@ -248,7 +248,7 @@ static rt_err_t  f133_transfer_command(struct sdhci_f133_pdata_t * pdat, struct 
             
             if(rt_tick_get() - cur_tick > 100)
             {
-                rt_kprintf("zzz1\n");
+                //rt_kprintf("zzz1\n");
                 return -RT_ETIMEOUT;
             }
 
@@ -291,7 +291,7 @@ static rt_err_t  f133_transfer_command(struct sdhci_f133_pdata_t * pdat, struct 
         {
             write32(pdat->virt + SD_GCTL, SDXC_HARDWARE_RESET);
             write32(pdat->virt + SD_RISR, 0xffffffff);
-            rt_kprintf("zzz2\n");
+            //rt_kprintf("zzz2\n");
             return  -RT_ERROR;
         }
     } while(!(status & SDXC_COMMAND_DONE));
