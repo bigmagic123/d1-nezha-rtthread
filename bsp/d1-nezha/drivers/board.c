@@ -26,7 +26,7 @@ static void dcache_enable(void)
 {
 	write_csr(0x7c2, 0x70013);		/* csr_write(mcor, 0x70013); */
 	write_csr(0x7c1, 0x11ff);		/* csr_write(mhcr, 0x11ff); */
-	write_csr(0x7c0, 0x638000);		/* csr_set(mxstatus, 0x638000); */
+	set_csr(0x7c0, 0x638000);		/* csr_set(mxstatus, 0x638000); */
 	write_csr(0x7c5, 0x16e30c);		/* csr_write(mhint, 0x16e30c); */
 }
 
