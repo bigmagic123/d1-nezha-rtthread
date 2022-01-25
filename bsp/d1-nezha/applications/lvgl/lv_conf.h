@@ -11,6 +11,7 @@
 #ifndef LV_CONF_H
 #define LV_CONF_H
 
+#define LV_USE_DEMO_WIDGETS         1
 #define LV_USE_PERF_MONITOR         1
 #define LV_COLOR_DEPTH              32
 

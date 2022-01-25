@@ -14,7 +14,7 @@
 #include <rtdbg.h>
 
 #ifndef LV_THREAD_STACK_SIZE
-#define LV_THREAD_STACK_SIZE 4096
+#define LV_THREAD_STACK_SIZE 8192
 #endif
 
 #ifndef LV_THREAD_PRIO
@@ -23,10 +23,11 @@
 
 static void lvgl_thread(void *parameter)
 {
+    gt911_thread_init();
     /* display demo; you may replace with your LVGL application at here */
-    extern void lv_demo_music(void);
-    lv_demo_music();
-
+    // extern void lv_demo_music(void);
+    // lv_demo_music();
+    lv_demo_widgets();
     /* handle the tasks of LVGL */
     while(1)
     {

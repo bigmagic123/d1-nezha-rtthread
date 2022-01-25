@@ -16,6 +16,12 @@
 #define THREAD_STACK_SIZE 4096
 #define THREAD_TIMESLICE  5
 
+#if defined(PKG_USING_LVGL)
+#include <lvgl.h>
+#include <lv_port_indev.h>
+static rt_bool_t touch_down = RT_FALSE;
+#endif
+
 static rt_thread_t  gt911_thread = RT_NULL;
 static rt_device_t  dev = RT_NULL;
 static struct rt_touch_data *read_data;
@@ -23,6 +29,8 @@ static struct rt_touch_info info;
 
 static void gt911_entry(void *parameter)
 {
+    int cur_x, cur_y;
+    int cnt_xx = 0;
     rt_device_control(dev, RT_TOUCH_CTRL_GET_INFO, &info);
     read_data = (struct rt_touch_data *)rt_malloc(sizeof(struct rt_touch_data) * info.point_num);
     while (1)
@@ -33,19 +41,43 @@ static void gt911_entry(void *parameter)
             {
                 if (read_data[i].event == RT_TOUCH_EVENT_DOWN || read_data[i].event == RT_TOUCH_EVENT_MOVE)
                 {
-                    rt_kprintf("%d %d %d %d %d\n", read_data[i].track_id,
-                               read_data[i].x_coordinate,
-                               read_data[i].y_coordinate,
-                               read_data[i].timestamp,
-                               read_data[i].width);
+                    // rt_kprintf("%d %d %d %d %d\n", read_data[i].track_id,
+                    //            read_data[i].x_coordinate,
+                    //            read_data[i].y_coordinate,
+                    //            read_data[i].timestamp,
+                    //            read_data[i].width);
+
+#ifdef PKG_USING_LVGL
+    if(read_data[i].timestamp < 20000)
+    {
+        cnt_xx = 0;
+        touch_down = RT_TRUE;
+        cur_x = read_data[i].x_coordinate * 800 / 1024;
+        cur_y = read_data[i].y_coordinate * 480 / 600;
+        lv_port_indev_input(cur_x, cur_y, (touch_down == RT_TRUE) ? LV_INDEV_STATE_PR : LV_INDEV_STATE_REL);
+    }
+    
+#endif
                 }
             }
         }
+
+#ifdef PKG_USING_LVGL
+    if(touch_down == RT_TRUE)
+    {
+        if(cnt_xx++ > 2)
+        {
+            cnt_xx = 0;
+            touch_down = RT_FALSE;
+            lv_port_indev_input(cur_x, cur_y, (touch_down == RT_TRUE) ? LV_INDEV_STATE_PR : LV_INDEV_STATE_REL);
+        } 
+    }
+#endif
+    rt_thread_mdelay(10);
     }
 }
 
-/* Test function */
-int gt911_sample(void)
+int gt911_thread_init(void)
 {
     void *id;
     int x, y;
@@ -83,4 +115,4 @@ int gt911_sample(void)
     return 0;
 }
 
-MSH_CMD_EXPORT(gt911_sample, test gt911);
+//MSH_CMD_EXPORT(gt911_sample, test gt911);
