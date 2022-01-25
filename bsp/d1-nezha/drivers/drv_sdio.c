@@ -662,4 +662,4 @@ err:
     return RT_EOK;
 }
 
-INIT_DEVICE_EXPORT(f133_sdio_init);
+//INIT_DEVICE_EXPORT(f133_sdio_init);

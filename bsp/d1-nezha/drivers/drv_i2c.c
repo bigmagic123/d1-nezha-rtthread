@@ -38,7 +38,7 @@ static int f133_i2c_wait_status(void)
             break;
         }
 
-        if(rt_tick_get() - cur_tick > 100)
+        if(rt_tick_get() - cur_tick > 1)
         {
             ret = I2C_STAT_BUS_ERROR;
             break;
@@ -269,4 +269,4 @@ void i2c_init(void)
     rt_i2c_bus_device_register(&f133_i2c_dev, "i2c0");
 }
 
-INIT_DEVICE_EXPORT(i2c_init);
+INIT_BOARD_EXPORT(i2c_init);
