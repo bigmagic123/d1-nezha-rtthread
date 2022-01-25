@@ -107,6 +107,7 @@
 #define RT_MMCSD_THREAD_PREORITY 22
 #define RT_MMCSD_MAX_PARTITION 16
 #define RT_USING_WDT
+#define RT_USING_TOUCH
 
 /* Using USB */
 
@@ -174,8 +175,17 @@
 
 /* LVGL: powerful and easy-to-use embedded GUI library */
 
+#define PKG_USING_LVGL
+#define PKG_USING_LVGL_EXAMPLES
+#define PKG_USING_LVGL_DEMOS
+#define PKG_USING_LVGL_LATEST_VERSION
+#define PKG_LVGL_VER_NUM 0x99999
+#define PKG_USING_LV_MUSIC_DEMO
 
 /* u8g2: a monochrome graphic library */
+
+
+/* PainterEngine: A cross-platform graphics application framework written in C language */
 
 
 /* tools packages */
@@ -183,7 +193,16 @@
 
 /* system packages */
 
+/* enhanced kernel services */
+
+
+/* POSIX extension functions */
+
+
 /* acceleration: Assembly language or algorithmic acceleration packages */
+
+
+/* CMSIS: ARM Cortex-M Microcontroller Software Interface Standard */
 
 
 /* Micrium: Micrium software products porting for RT-Thread */
