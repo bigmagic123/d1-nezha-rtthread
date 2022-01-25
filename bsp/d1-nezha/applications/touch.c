@@ -48,7 +48,7 @@ static void gt911_entry(void *parameter)
                     //            read_data[i].width);
 
 #ifdef PKG_USING_LVGL
-    if(read_data[i].timestamp < 20000)
+    if(read_data[i].x_coordinate > 10)
     {
         cnt_xx = 0;
         touch_down = RT_TRUE;
