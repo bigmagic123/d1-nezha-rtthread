@@ -230,8 +230,6 @@ void lcd_gpio_config(void)
     write32((void *)0x02001b60, 0x81000002);
     write32((void *)0x02001b9c, 1);
 
-    rt_hw_cpu_dcache_invalidate_all();
-    rt_hw_cpu_icache_invalidate_all();
     tcon = (struct f133_tconlcd_reg_t *)((unsigned long long)LCD_TCON_BASE_ADDR);
     f133_tconlcd_disable();
     f133_tconlcd_set_timing();
