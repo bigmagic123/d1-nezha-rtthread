@@ -371,7 +371,7 @@ int rt_hw_gt911_init(const char *name, struct rt_touch_config *cfg)
     gt911_client.client_addr = GT911_ADDRESS_HIGH;
     gt911_soft_reset(&gt911_client);
 
-    rt_uint8_t *config = RT_NULL;
+    rt_uint8_t config[512];
     rt_thread_mdelay(10);
 
     config[0] = (rt_uint8_t)((GT911_CONFIG_REG >> 8) & 0xFF);

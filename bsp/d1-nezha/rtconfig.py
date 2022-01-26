@@ -43,17 +43,17 @@ if PLATFORM == 'gcc':
     OBJCPY  = PREFIX + 'objcopy'
 
     DEVICE  = ' -march=rv64gcvxtheadc  -mabi=lp64d -mtune=c906 -fno-omit-frame-pointer '
-    CFLAGS  = DEVICE + ' -fvar-tracking -ffreestanding -fno-common -ffunction-sections -fdata-sections -fstrict-volatile-bitfields '
+    CFLAGS  = DEVICE + '  -ffreestanding -fno-common -ffunction-sections -fdata-sections -fstrict-volatile-bitfields '
     AFLAGS  = ' -c' + DEVICE + ' -x assembler-with-cpp'
     LFLAGS  = DEVICE + ' -nostartfiles -Wl,--gc-sections,-Map=rtthread.map,-cref,-u,_start -T link.lds'
     CPATH   = ''
     LPATH   = ''
 
     if BUILD == 'debug':
-        CFLAGS += ' -O0 -ggdb'
+        CFLAGS += ' -O0 -ggdb -fvar-tracking'
         AFLAGS += ' -ggdb'
     else:
-        CFLAGS += ' -O2 -Os'
+        CFLAGS += ' -O2 '
 
     CXXFLAGS = CFLAGS
 

@@ -26,7 +26,7 @@ _start:
     csrw mie, zero
 
     /*enable theadisaee*/
-    li t1, EN_THEADISAEE
+    li t1, EN_THEADISAEE | (1 << 15)
     csrs mxstatus, t1
 
     /*invaild ICACHE/DCACHE/BTB/BHT*/
