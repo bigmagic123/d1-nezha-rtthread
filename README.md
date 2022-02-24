@@ -101,3 +101,31 @@ file system initialization done!
 Hello RISC-V!
 msh />
 ```
+
+## 如何使能LVGL的功能
+
+首先需要使用rt-thread的pkg功能
+
+在Linux上使用`scons --menuconfig`
+
+```
+> RT-Thread online packages     
+    > multimedia packages   
+        > LVGL: powerful and easy-to-use embedded GUI library
+```
+
+打开图形化界面
+
+```
+[*] LVGL (official): powerful and easy-to-use embedded GUI library                                                    
+[ ] LittlevGL2RTT (legacy): The LittlevGL GUI Lib for RT-Thread    
+[*] Enable LVGL music player demo for RT-Thread
+```
+选择上述即可。在windows需要安装env工具，则可以输入`menuconfig`。
+
+接着，输入
+```
+source ~/.env/env.sh
+pkgs --update
+```
+更新完成pkgs即可正常在lcd屏幕上看到显示了。
