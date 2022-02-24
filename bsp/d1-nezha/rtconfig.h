@@ -175,12 +175,6 @@
 
 /* LVGL: powerful and easy-to-use embedded GUI library */
 
-#define PKG_USING_LVGL
-#define PKG_USING_LVGL_EXAMPLES
-#define PKG_USING_LVGL_DEMOS
-#define PKG_USING_LVGL_LATEST_VERSION
-#define PKG_LVGL_VER_NUM 0x99999
-#define PKG_USING_LV_MUSIC_DEMO
 
 /* u8g2: a monochrome graphic library */
 
