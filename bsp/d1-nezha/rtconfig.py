@@ -26,7 +26,7 @@ else:
 if os.getenv('RTT_EXEC_PATH'):
     EXEC_PATH = os.getenv('RTT_EXEC_PATH')
 
-BUILD = 'debug'
+BUILD = ' '
 
 if PLATFORM == 'gcc':
     # toolchains
@@ -42,8 +42,8 @@ if PLATFORM == 'gcc':
     OBJDUMP = PREFIX + 'objdump'
     OBJCPY  = PREFIX + 'objcopy'
 
-    DEVICE  = ' -march=rv64gcvxtheadc  -mabi=lp64d -mtune=c906 -fno-omit-frame-pointer '
-    CFLAGS  = DEVICE + '  -ffreestanding -fno-common -ffunction-sections -fdata-sections -fstrict-volatile-bitfields '
+    DEVICE  = ' -march=rv64gcvxtheade  -mabi=lp64d -mtune=c906 '
+    CFLAGS  = DEVICE + '  -ffreestanding -fno-common   -ffunction-sections -fdata-sections -fstrict-volatile-bitfields '
     AFLAGS  = ' -c' + DEVICE + ' -x assembler-with-cpp'
     LFLAGS  = DEVICE + ' -nostartfiles -Wl,--gc-sections,-Map=rtthread.map,-cref,-u,_start -T link.lds'
     CPATH   = ''
